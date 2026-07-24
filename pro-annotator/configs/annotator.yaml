@@ -1,0 +1,47 @@
+project:
+  name: "my_dataset"
+  path: "datasets/my_dataset"
+  classes: ["person", "car", "bicycle", "dog", "cat", "truck", "bus", "motorcycle"]
+  colors: []  # auto
+  export_format: "yolo"
+  auto_save: true
+  backup: true
+
+models:
+  detector: "models/yolov8n.onnx"
+  sam: "models/mobile_sam.onnx"  # optional
+  llm: "models/llm/tinyllama-1.1b-chat.gguf"  # or .onnx or HF folder
+  device: "auto"  # auto, cpu, cuda
+  conf_thres: 0.35
+  iou_thres: 0.45
+  wanted_classes: []  # empty = all, or [0,2] or ["person","car"]
+
+ai:
+  auto_label_on_import: false
+  background_inference: true
+  sam_enabled: true
+  batch:
+    recursive: true
+    max_images: 0  # 0 = unlimited
+    conf_override: 0.35
+    save_after: 50  # autosave every N
+
+llm:
+  enabled: true
+  backend: "auto"  # auto, llama_cpp, transformers, onnx, dummy
+  model_path: "models/llm/tinyllama-1.1b-chat.gguf"
+  device: "cpu"
+  max_tokens: 512
+  temperature: 0.2
+  system_prompt: "You are a professional dataset QA assistant for object detection labeling. Analyze labels and give concise, actionable feedback in JSON."
+
+ui:
+  theme: "dark"
+  thumbnail_size: 128
+  autosave_interval_sec: 60
+  crosshair: true
+  snap: false
+  show_llm_panel: true
+  show_batch_panel: true
+
+offline: true

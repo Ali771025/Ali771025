@@ -1,0 +1,32 @@
+numpy>=1.24
+opencv-python>=4.8
+onnxruntime>=1.16
+onnx>=1.14
+PyYAML>=6.0
+pydantic>=2.0
+typer>=0.9
+loguru>=0.7
+tqdm>=4.66
+pillow>=10.0
+PySide6>=6.5
+
+# Optional AI backends (install as needed):
+# YOLO .pt support
+# ultralytics>=8.1
+# torch>=2.0
+# torchvision>=0.15
+
+# LLM backends - offline small LLM
+# Option 1: llama-cpp-python for GGUF (CPU efficient, recommended)
+# llama-cpp-python>=0.2.50
+
+# Option 2: transformers for HF local models (Phi-3, TinyLlama)
+# transformers>=4.38
+# accelerate>=0.27
+# optimum[onnxruntime]>=1.16
+
+# Option 3: onnxruntime-gpu for CUDA
+# onnxruntime-gpu>=1.16
+
+# Testing
+pytest>=8.0
