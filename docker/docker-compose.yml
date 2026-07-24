@@ -1,0 +1,36 @@
+version: "3.8"
+services:
+  yolo-cpu:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.cpu
+    volumes:
+      - ../models:/app/models
+      - ../datasets:/app/datasets
+      - ../configs:/app/configs
+    environment:
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+    network_mode: host
+    # for X11 forwarding
+    # volumes: - /tmp/.X11-unix:/tmp/.X11-unix
+
+  yolo-cuda:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.cuda
+    volumes:
+      - ../models:/app/models
+      - ../datasets:/app/datasets
+      - ../configs:/app/configs
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    environment:
+      - DISPLAY=${DISPLAY}
+      - NVIDIA_VISIBLE_DEVICES=all
+    network_mode: host

@@ -1,0 +1,14 @@
+source: "data/video.mp4"
+source_type: "video"
+model:
+  path: "models/yolov8n.onnx"
+device: "auto"
+imgsz: 640
+conf_thres: 0.35
+iou_thres: 0.45
+frame_skip: 0
+output:
+  show: true
+  save_video: "output.mp4"
+  log_path: "detections.jsonl"
+  log_format: "jsonl"

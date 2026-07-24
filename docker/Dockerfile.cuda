@@ -1,0 +1,28 @@
+FROM nvidia/cuda:12.2.0-devel-ubuntu22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y \
+    python3 python3-pip python3-dev \
+    build-essential cmake ninja-build git pkg-config \
+    libopencv-dev \
+    libyaml-cpp-dev libspdlog-dev libfmt-dev \
+    qt6-base-dev \
+    wget curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install ONNX Runtime GPU prebuilt (cpu fallback)
+RUN pip3 install --no-cache-dir --upgrade pip
+
+WORKDIR /app
+
+COPY python/requirements.txt ./python/requirements.txt
+RUN pip3 install --no-cache-dir -r python/requirements.txt && \
+    pip3 install --no-cache-dir onnxruntime-gpu PySide6 ultralytics || true
+
+COPY . .
+
+# Build C++ with CUDA if available
+RUN cmake -S cpp -B /tmp/build -DCMAKE_BUILD_TYPE=Release -DYOLO_WITH_QT=OFF -DYOLO_WITH_ONNXRUNTIME=ON -DYOLO_WITH_TENSORRT=OFF || true && \
+    cmake --build /tmp/build -j || true
+
+CMD ["python3", "-m", "yolo_monitor", "--help"]

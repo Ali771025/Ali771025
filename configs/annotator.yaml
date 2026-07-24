@@ -1,0 +1,25 @@
+project:
+  name: "my_dataset"
+  path: "datasets/my_dataset"
+  classes: ["person", "car", "bicycle", "dog", "cat"]
+  colors: []  # auto-generate if empty
+  export_format: "yolo"  # yolo, coco, voc
+  auto_save: true
+  backup: true
+models:
+  detector: "models/yolov8n.onnx"
+  sam: "models/mobile_sam.onnx"  # optional
+  device: "auto"
+  conf_thres: 0.3
+  iou_thres: 0.45
+ai:
+  auto_label_on_import: false
+  background_inference: true
+  sam_enabled: true
+ui:
+  theme: "dark"
+  thumbnail_size: 128
+  autosave_interval_sec: 60
+  crosshair: true
+  snap: false
+offline: true

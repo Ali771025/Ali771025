@@ -1,0 +1,6 @@
+source: "http://192.168.1.11/video"
+source_type: "http"
+model:
+  path: "models/yolov8n.onnx"
+device: "cpu"
+conf_thres: 0.4

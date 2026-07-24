@@ -1,0 +1,63 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+*.egg
+.pytest_cache/
+.mypy_cache/
+
+# C++
+cpp/build/
+build/
+*.o
+*.a
+*.so
+*.dll
+*.exe
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+*.engine
+*.trt
+
+# Models - keep gitkeep but ignore large weights unless tracked by LFS
+models/*.onnx
+models/*.pt
+models/*.engine
+models/*.trt
+models/*.bin
+!models/.gitkeep
+
+# Datasets / outputs
+datasets/*/
+!datasets/.gitkeep
+*.csv
+*.jsonl
+*.mp4
+*.avi
+*.mkv
+out/
+outputs/
+runs/
+
+# Secrets
+secrets.yaml
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/

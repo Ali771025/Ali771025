@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "offline-yolo-monitor-annotator"
+version = "1.0.0"
+description = "Offline YOLO detection + monitoring + AI annotation (Python + C++)"
+readme = "../README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [{name="offline-yolo"}]
+dependencies = [
+  "numpy>=1.24",
+  "opencv-python>=4.8",
+  "onnxruntime>=1.16",
+  "onnx>=1.14",
+  "PyYAML>=6.0",
+  "pydantic>=2.0",
+  "typer>=0.9",
+  "loguru>=0.7",
+  "tqdm>=4.66",
+  "pillow>=10.0",
+]
+
+[project.optional-dependencies]
+cuda = [
+  "onnxruntime-gpu>=1.16",
+]
+ultralytics = [
+  "ultralytics>=8.1",
+  "torch>=2.0",
+  "torchvision>=0.15",
+]
+gui = [
+  "PySide6>=6.5",
+]
+all = [
+  "onnxruntime-gpu>=1.16",
+  "ultralytics>=8.1",
+  "torch>=2.0",
+  "torchvision>=0.15",
+  "PySide6>=6.5",
+]
+
+[project.scripts]
+yolo-monitor = "yolo_monitor.cli:main"
+yolo-annotator = "yolo_annotator.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["yolo_monitor*", "yolo_annotator*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

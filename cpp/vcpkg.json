@@ -1,0 +1,17 @@
+{
+  "name": "offline-yolo",
+  "version-string": "1.0.0",
+  "dependencies": [
+    "opencv4",
+    "onnxruntime",
+    "spdlog",
+    "yaml-cpp",
+    "nlohmann-json",
+    "cli11",
+    "gtest",
+    {
+      "name": "qt",
+      "features": ["base"]
+    }
+  ]
+}

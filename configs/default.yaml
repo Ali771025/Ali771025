@@ -1,0 +1,55 @@
+# Default detection config
+source: "0"  # 0, /dev/video0, rtsp://..., http://..., video.mp4, /folder/images
+source_type: "auto"  # auto, usb, v4l2, rtsp, http, video, images, gstreamer, rtmp
+model:
+  path: "models/yolov8n.onnx"
+  backend: "auto"  # auto, onnx, tensorrt, ultralytics
+  task: "detect"
+device: "auto"  # auto, cpu, cuda:0, tensorrt
+imgsz: 640
+conf_thres: 0.35
+iou_thres: 0.45
+max_det: 300
+classes: []  # empty means all, e.g. [0,2,3]
+half: false
+batch_size: 1
+warmup: 10
+frame_skip: 0  # process every N+1 frames, 0 = all
+roi: null  # [x1,y1,x2,y2] or null
+tracking:
+  enabled: true
+  tracker: "iou"  # iou, bytetrack
+  iou_threshold: 0.3
+  max_age: 30
+output:
+  show: true
+  save_video: null  # path or null
+  log_path: "detections.jsonl"
+  log_format: "jsonl"  # csv, jsonl, sqlite, both
+  log_per_frame: false
+  draw:
+    labels: true
+    conf: true
+    track_id: true
+    center: false
+    box_coords: false
+    fps_overlay: true
+    line_thickness: 2
+    font_scale: 0.5
+pipeline:
+  queue_size: 8
+  drop_policy: "oldest"  # oldest, newest, none
+  capture_fps: 30
+  reconnect:
+    enabled: true
+    max_retries: 100
+    backoff_base: 1.5
+    initial_delay: 1.0
+    max_delay: 30.0
+    timeout_ms: 5000
+secrets:
+  env_user_var: "CAMERA_USER"
+  env_pass_var: "CAMERA_PASSWORD"
+  secrets_file: null  # path to yaml with rtsp_user, rtsp_password
+offline: false
+verbose: false

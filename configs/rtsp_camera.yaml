@@ -1,0 +1,22 @@
+source: "rtsp://CAMERA_USER:CAMERA_PASSWORD@192.168.1.10:554/stream"
+source_type: "rtsp"
+model:
+  path: "models/yolov8s.onnx"
+  backend: "onnx"
+device: "cuda"
+imgsz: 640
+conf_thres: 0.35
+iou_thres: 0.45
+tracking:
+  enabled: true
+pipeline:
+  queue_size: 16
+  reconnect:
+    enabled: true
+    max_retries: 999
+    backoff_base: 1.5
+    initial_delay: 2.0
+    max_delay: 30.0
+secrets:
+  env_user_var: "CAMERA_USER"
+  env_pass_var: "CAMERA_PASSWORD"
