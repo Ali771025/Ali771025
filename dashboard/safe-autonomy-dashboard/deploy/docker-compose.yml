@@ -1,0 +1,38 @@
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: deploy/backend.Dockerfile
+    env_file: ../.env
+    restart: unless-stopped
+    volumes:
+      - dashboard-data:/app/runtime
+    ports:
+      - "127.0.0.1:8080:8080"
+      # Ingest ports are intentionally bound to loopback by default.
+      # Only expose on 0.0.0.0 behind a firewall or with IP allow-listing.
+      - "127.0.0.1:15010:15010/udp"
+      - "127.0.0.1:15011:15011/tcp"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health/ready')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: ["ALL"]
+  frontend:
+    build:
+      context: ..
+      dockerfile: deploy/frontend.Dockerfile
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    ports:
+      - "8088:80"
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: ["ALL"]
+
+volumes:
+  dashboard-data:
+

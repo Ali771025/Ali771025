@@ -1,0 +1,262 @@
+{
+  "schema_version": "2.0",
+  "clock_domain": "host_monotonic_ms",
+  "safety_boundary": "No publisher, port or contract in this revision can emit PX4 command, actuator, waypoint or setpoint data.",
+  "modules": [
+    {
+      "id": "camera_ingest",
+      "authority": "sensor",
+      "inputs": {},
+      "outputs": {
+        "raw_frame": "CapturedBgrFrame.v1",
+        "frame_clock": "FrameClock.v1",
+        "health": "ModuleHealth.v1"
+      }
+    },
+    {
+      "id": "yolo_tracker",
+      "authority": "perception",
+      "inputs": {"raw_frame": "CapturedBgrFrame.v1"},
+      "outputs": {"tracks": "TrackedObjects2D.v1", "health": "ModuleHealth.v1"}
+    },
+    {
+      "id": "overlay",
+      "authority": "presentation",
+      "inputs": {"raw_frame": "CapturedBgrFrame.v1", "tracks": "TrackedObjects2D.v1"},
+      "outputs": {"annotated_frame": "AnnotatedBgrFrame.v1"}
+    },
+    {
+      "id": "stream_publisher",
+      "authority": "presentation",
+      "inputs": {"annotated_frame": "AnnotatedBgrFrame.v1"},
+      "outputs": {"health": "ModuleHealth.v1"}
+    },
+    {
+      "id": "px4_telemetry",
+      "authority": "read_only",
+      "inputs": {},
+      "outputs": {"telemetry_frame": "TelemetryFrame.v1", "health": "ModuleHealth.v1"}
+    },
+    {
+      "id": "timestamp_sync",
+      "authority": "fusion",
+      "inputs": {"frame_clock": "FrameClock.v1", "telemetry_frame": "ValidatedTelemetryFrame.v2"},
+      "outputs": {"synced_observation": "SyncedObservation.v1", "sync_audit": "SyncRecord.v1"}
+    },
+    {
+      "id": "temporal_guard",
+      "authority": "supervisor",
+      "inputs": {"telemetry_frame": "TelemetryFrame.v1"},
+      "outputs": {"validated_frame": "ValidatedTelemetryFrame.v2", "audit": "TemporalObservation.v2"}
+    },
+    {
+      "id": "world_model",
+      "authority": "deterministic",
+      "inputs": {"observation": "SyncedObservation.v1"},
+      "outputs": {"snapshot": "WorldSnapshot.v1"}
+    },
+    {
+      "id": "decision_engine",
+      "authority": "deterministic",
+      "inputs": {"snapshot": "WorldSnapshot.v1", "flight_assessment": "FlightAssessment.v1"},
+      "outputs": {"decision": "BoundedDecision.v1", "audit": "DecisionAudit.v1"}
+    },
+    {
+      "id": "hybrid_rag",
+      "authority": "advisory",
+      "inputs": {"decision_context": "BoundedDecision.v1"},
+      "outputs": {"evidence": "RagEvidenceBundle.v1"}
+    },
+    {
+      "id": "transformer_advisory",
+      "authority": "advisory",
+      "inputs": {"evidence": "RagEvidenceBundle.v1", "decision_context": "BoundedDecision.v1"},
+      "outputs": {"proposal": "AdvisoryProposal.v1"}
+    },
+    {
+      "id": "evidence_gate",
+      "authority": "supervisor",
+      "inputs": {"proposal": "AdvisoryProposal.v1", "evidence": "RagEvidenceBundle.v1"},
+      "outputs": {"operator_advisory": "GatedAdvisory.v1", "audit": "AdvisoryAudit.v1"}
+    },
+    {
+      "id": "operator_gateway",
+      "authority": "operator",
+      "inputs": {},
+      "outputs": {
+        "map_upload": "MapUpload.v1",
+        "route_request": "RouteRequest.v1",
+        "scenario_request": "ScenarioRequest.v1",
+        "heartbeat_batch": "ModuleHeartbeatBatch.v2"
+      }
+    },
+    {
+      "id": "map_ingest",
+      "authority": "deterministic",
+      "inputs": {"upload": "MapUpload.v1"},
+      "outputs": {"mission_map": "MissionMap.v1", "health": "ModuleHealth.v1"}
+    },
+    {
+      "id": "map_analyzer",
+      "authority": "deterministic",
+      "inputs": {"mission_map": "MissionMap.v1"},
+      "outputs": {"analyzed_map": "AnalyzedMissionMap.v1", "audit": "MapAnalysisAudit.v1"}
+    },
+    {
+      "id": "dynamic_risk_overlay",
+      "authority": "deterministic",
+      "inputs": {"static_map": "AnalyzedMissionMap.v1", "tracks": "TrackedObjects2D.v1"},
+      "outputs": {"dynamic_map": "AnalyzedMissionMap.v1", "audit": "DynamicRiskAudit.v2"}
+    },
+    {
+      "id": "route_planner",
+      "authority": "deterministic",
+      "inputs": {"map": "AnalyzedMissionMap.v1", "request": "RouteRequest.v1"},
+      "outputs": {"candidates": "RouteCandidates3D.v1", "health": "ModuleHealth.v1"}
+    },
+    {
+      "id": "route_validator",
+      "authority": "supervisor",
+      "inputs": {"map": "AnalyzedMissionMap.v1", "candidates": "RouteCandidates3D.v1"},
+      "outputs": {"validated_route": "ValidatedRoute3D.v1", "audit": "RouteValidationAudit.v1"}
+    },
+    {
+      "id": "route_revalidator",
+      "authority": "supervisor",
+      "inputs": {"map": "AnalyzedMissionMap.v1", "route": "ValidatedRoute3D.v1", "observation": "SyncedObservation.v1"},
+      "outputs": {"assessment": "RouteRevalidation.v2", "audit": "RouteRevalidationAudit.v2"}
+    },
+    {
+      "id": "energy_estimator",
+      "authority": "deterministic",
+      "inputs": {"route": "ValidatedRoute3D.v1", "flight_assessment": "FlightAssessment.v1"},
+      "outputs": {"assessment": "EnergyAssessment.v2"}
+    },
+    {
+      "id": "health_manager",
+      "authority": "supervisor",
+      "inputs": {"heartbeats": "ModuleHeartbeatBatch.v2"},
+      "outputs": {"readiness": "SystemReadiness.v2"}
+    },
+    {
+      "id": "mission_assurance",
+      "authority": "supervisor",
+      "inputs": {"map": "AnalyzedMissionMap.v1", "route": "ValidatedRoute3D.v1", "flight_assessment": "FlightAssessment.v1", "energy": "EnergyAssessment.v2", "readiness": "SystemReadiness.v2"},
+      "outputs": {"report": "AssuranceReport.v2"}
+    },
+    {
+      "id": "observability",
+      "authority": "monitoring",
+      "inputs": {"decision_audit": "DecisionAudit.v1"},
+      "outputs": {"slo": "LatencySloSnapshot.v2"}
+    },
+    {
+      "id": "flight_state_analyzer",
+      "authority": "deterministic",
+      "inputs": {"observation": "SyncedObservation.v1", "route_context": "ValidatedRoute3D.v1"},
+      "outputs": {"assessment": "FlightAssessment.v1", "audit": "FlightAssessmentAudit.v1"}
+    },
+    {
+      "id": "scenario_engine",
+      "authority": "simulation",
+      "inputs": {"request": "ScenarioRequest.v1"},
+      "outputs": {"report": "ScenarioReport.v1"}
+    },
+    {
+      "id": "audit_database",
+      "authority": "persistence",
+      "inputs": {
+        "tracks": "TrackedObjects2D.v1",
+        "sync": "SyncRecord.v1",
+        "decision": "DecisionAudit.v1",
+        "advisory": "AdvisoryAudit.v1",
+        "camera_health": "ModuleHealth.v1",
+        "tracker_health": "ModuleHealth.v1",
+        "publisher_health": "ModuleHealth.v1",
+        "telemetry_health": "ModuleHealth.v1",
+        "map_analysis": "MapAnalysisAudit.v1",
+        "route_validation": "RouteValidationAudit.v1",
+        "flight_assessment": "FlightAssessmentAudit.v1",
+        "scenario_report": "ScenarioReport.v1",
+        "map_health": "ModuleHealth.v1",
+        "planner_health": "ModuleHealth.v1"
+        ,"temporal_observation": "TemporalObservation.v2"
+        ,"dynamic_risk": "DynamicRiskAudit.v2"
+        ,"route_revalidation": "RouteRevalidationAudit.v2"
+        ,"energy_assessment": "EnergyAssessment.v2"
+        ,"readiness": "SystemReadiness.v2"
+        ,"assurance_report": "AssuranceReport.v2"
+        ,"latency_slo": "LatencySloSnapshot.v2"
+      },
+      "outputs": {}
+    }
+  ],
+  "connections": [
+    {"source": "camera_ingest.raw_frame", "target": "yolo_tracker.raw_frame", "contract": "CapturedBgrFrame.v1", "queue_policy": "drop_oldest", "max_age_ms": 100},
+    {"source": "camera_ingest.raw_frame", "target": "overlay.raw_frame", "contract": "CapturedBgrFrame.v1", "queue_policy": "latest_only", "max_age_ms": 100},
+    {"source": "yolo_tracker.tracks", "target": "overlay.tracks", "contract": "TrackedObjects2D.v1", "queue_policy": "latest_only", "max_age_ms": 100},
+    {"source": "overlay.annotated_frame", "target": "stream_publisher.annotated_frame", "contract": "AnnotatedBgrFrame.v1", "queue_policy": "drop_oldest", "max_age_ms": 150},
+    {"source": "camera_ingest.frame_clock", "target": "timestamp_sync.frame_clock", "contract": "FrameClock.v1", "queue_policy": "latest_only", "max_age_ms": 50},
+    {"source": "px4_telemetry.telemetry_frame", "target": "temporal_guard.telemetry_frame", "contract": "TelemetryFrame.v1", "queue_policy": "latest_only", "max_age_ms": 100},
+    {"source": "temporal_guard.validated_frame", "target": "timestamp_sync.telemetry_frame", "contract": "ValidatedTelemetryFrame.v2", "queue_policy": "latest_only", "max_age_ms": 100},
+    {"source": "timestamp_sync.synced_observation", "target": "world_model.observation", "contract": "SyncedObservation.v1", "queue_policy": "latest_only", "max_age_ms": 100},
+    {"source": "timestamp_sync.synced_observation", "target": "flight_state_analyzer.observation", "contract": "SyncedObservation.v1", "queue_policy": "latest_only", "max_age_ms": 100},
+    {"source": "world_model.snapshot", "target": "decision_engine.snapshot", "contract": "WorldSnapshot.v1", "queue_policy": "latest_only", "max_age_ms": 200},
+    {"source": "flight_state_analyzer.assessment", "target": "decision_engine.flight_assessment", "contract": "FlightAssessment.v1", "queue_policy": "latest_only", "max_age_ms": 200},
+    {"source": "decision_engine.decision", "target": "hybrid_rag.decision_context", "contract": "BoundedDecision.v1", "queue_policy": "request_reply", "max_age_ms": 1000},
+    {"source": "decision_engine.decision", "target": "transformer_advisory.decision_context", "contract": "BoundedDecision.v1", "queue_policy": "request_reply", "max_age_ms": 1000},
+    {"source": "hybrid_rag.evidence", "target": "transformer_advisory.evidence", "contract": "RagEvidenceBundle.v1", "queue_policy": "request_reply", "max_age_ms": 5000},
+    {"source": "hybrid_rag.evidence", "target": "evidence_gate.evidence", "contract": "RagEvidenceBundle.v1", "queue_policy": "request_reply", "max_age_ms": 5000},
+    {"source": "transformer_advisory.proposal", "target": "evidence_gate.proposal", "contract": "AdvisoryProposal.v1", "queue_policy": "request_reply", "max_age_ms": 5000},
+    {"source": "operator_gateway.map_upload", "target": "map_ingest.upload", "contract": "MapUpload.v1", "queue_policy": "request_reply", "max_age_ms": 60000},
+    {"source": "map_ingest.mission_map", "target": "map_analyzer.mission_map", "contract": "MissionMap.v1", "queue_policy": "durable", "max_age_ms": 60000},
+    {"source": "map_analyzer.analyzed_map", "target": "dynamic_risk_overlay.static_map", "contract": "AnalyzedMissionMap.v1", "queue_policy": "latest_only", "max_age_ms": 60000},
+    {"source": "yolo_tracker.tracks", "target": "dynamic_risk_overlay.tracks", "contract": "TrackedObjects2D.v1", "queue_policy": "latest_only", "max_age_ms": 500},
+    {"source": "dynamic_risk_overlay.dynamic_map", "target": "route_planner.map", "contract": "AnalyzedMissionMap.v1", "queue_policy": "request_reply", "max_age_ms": 1000},
+    {"source": "map_analyzer.analyzed_map", "target": "route_validator.map", "contract": "AnalyzedMissionMap.v1", "queue_policy": "request_reply", "max_age_ms": 60000},
+    {"source": "operator_gateway.route_request", "target": "route_planner.request", "contract": "RouteRequest.v1", "queue_policy": "request_reply", "max_age_ms": 60000},
+    {"source": "route_planner.candidates", "target": "route_validator.candidates", "contract": "RouteCandidates3D.v1", "queue_policy": "request_reply", "max_age_ms": 5000},
+    {"source": "route_validator.validated_route", "target": "flight_state_analyzer.route_context", "contract": "ValidatedRoute3D.v1", "queue_policy": "latest_only", "max_age_ms": 1000},
+    {"source": "dynamic_risk_overlay.dynamic_map", "target": "route_revalidator.map", "contract": "AnalyzedMissionMap.v1", "queue_policy": "latest_only", "max_age_ms": 1000},
+    {"source": "route_validator.validated_route", "target": "route_revalidator.route", "contract": "ValidatedRoute3D.v1", "queue_policy": "latest_only", "max_age_ms": 1000},
+    {"source": "timestamp_sync.synced_observation", "target": "route_revalidator.observation", "contract": "SyncedObservation.v1", "queue_policy": "latest_only", "max_age_ms": 100},
+    {"source": "route_validator.validated_route", "target": "energy_estimator.route", "contract": "ValidatedRoute3D.v1", "queue_policy": "latest_only", "max_age_ms": 1000},
+    {"source": "flight_state_analyzer.assessment", "target": "energy_estimator.flight_assessment", "contract": "FlightAssessment.v1", "queue_policy": "latest_only", "max_age_ms": 200},
+    {"source": "operator_gateway.heartbeat_batch", "target": "health_manager.heartbeats", "contract": "ModuleHeartbeatBatch.v2", "queue_policy": "latest_only", "max_age_ms": 1500},
+    {"source": "map_analyzer.analyzed_map", "target": "mission_assurance.map", "contract": "AnalyzedMissionMap.v1", "queue_policy": "latest_only", "max_age_ms": 60000},
+    {"source": "route_validator.validated_route", "target": "mission_assurance.route", "contract": "ValidatedRoute3D.v1", "queue_policy": "latest_only", "max_age_ms": 1000},
+    {"source": "flight_state_analyzer.assessment", "target": "mission_assurance.flight_assessment", "contract": "FlightAssessment.v1", "queue_policy": "latest_only", "max_age_ms": 200},
+    {"source": "energy_estimator.assessment", "target": "mission_assurance.energy", "contract": "EnergyAssessment.v2", "queue_policy": "latest_only", "max_age_ms": 1000},
+    {"source": "health_manager.readiness", "target": "mission_assurance.readiness", "contract": "SystemReadiness.v2", "queue_policy": "latest_only", "max_age_ms": 1500},
+    {"source": "decision_engine.audit", "target": "observability.decision_audit", "contract": "DecisionAudit.v1", "queue_policy": "latest_only", "max_age_ms": 1000},
+    {"source": "operator_gateway.scenario_request", "target": "scenario_engine.request", "contract": "ScenarioRequest.v1", "queue_policy": "request_reply", "max_age_ms": 60000},
+    {"source": "yolo_tracker.tracks", "target": "audit_database.tracks", "contract": "TrackedObjects2D.v1", "queue_policy": "durable", "max_age_ms": 10000},
+    {"source": "timestamp_sync.sync_audit", "target": "audit_database.sync", "contract": "SyncRecord.v1", "queue_policy": "durable", "max_age_ms": 10000},
+    {"source": "decision_engine.audit", "target": "audit_database.decision", "contract": "DecisionAudit.v1", "queue_policy": "durable", "max_age_ms": 10000},
+    {"source": "evidence_gate.audit", "target": "audit_database.advisory", "contract": "AdvisoryAudit.v1", "queue_policy": "durable", "max_age_ms": 10000},
+    {"source": "camera_ingest.health", "target": "audit_database.camera_health", "contract": "ModuleHealth.v1", "queue_policy": "durable", "max_age_ms": 10000},
+    {"source": "yolo_tracker.health", "target": "audit_database.tracker_health", "contract": "ModuleHealth.v1", "queue_policy": "durable", "max_age_ms": 10000},
+    {"source": "stream_publisher.health", "target": "audit_database.publisher_health", "contract": "ModuleHealth.v1", "queue_policy": "durable", "max_age_ms": 10000},
+    {"source": "px4_telemetry.health", "target": "audit_database.telemetry_health", "contract": "ModuleHealth.v1", "queue_policy": "durable", "max_age_ms": 10000},
+    {"source": "map_analyzer.audit", "target": "audit_database.map_analysis", "contract": "MapAnalysisAudit.v1", "queue_policy": "durable", "max_age_ms": 60000},
+    {"source": "route_validator.audit", "target": "audit_database.route_validation", "contract": "RouteValidationAudit.v1", "queue_policy": "durable", "max_age_ms": 60000},
+    {"source": "flight_state_analyzer.audit", "target": "audit_database.flight_assessment", "contract": "FlightAssessmentAudit.v1", "queue_policy": "durable", "max_age_ms": 10000},
+    {"source": "scenario_engine.report", "target": "audit_database.scenario_report", "contract": "ScenarioReport.v1", "queue_policy": "durable", "max_age_ms": 60000},
+    {"source": "map_ingest.health", "target": "audit_database.map_health", "contract": "ModuleHealth.v1", "queue_policy": "durable", "max_age_ms": 10000},
+    {"source": "route_planner.health", "target": "audit_database.planner_health", "contract": "ModuleHealth.v1", "queue_policy": "durable", "max_age_ms": 10000}
+    ,{"source": "temporal_guard.audit", "target": "audit_database.temporal_observation", "contract": "TemporalObservation.v2", "queue_policy": "durable", "max_age_ms": 10000}
+    ,{"source": "dynamic_risk_overlay.audit", "target": "audit_database.dynamic_risk", "contract": "DynamicRiskAudit.v2", "queue_policy": "durable", "max_age_ms": 10000}
+    ,{"source": "route_revalidator.audit", "target": "audit_database.route_revalidation", "contract": "RouteRevalidationAudit.v2", "queue_policy": "durable", "max_age_ms": 10000}
+    ,{"source": "energy_estimator.assessment", "target": "audit_database.energy_assessment", "contract": "EnergyAssessment.v2", "queue_policy": "durable", "max_age_ms": 10000}
+    ,{"source": "health_manager.readiness", "target": "audit_database.readiness", "contract": "SystemReadiness.v2", "queue_policy": "durable", "max_age_ms": 10000}
+    ,{"source": "mission_assurance.report", "target": "audit_database.assurance_report", "contract": "AssuranceReport.v2", "queue_policy": "durable", "max_age_ms": 10000}
+    ,{"source": "observability.slo", "target": "audit_database.latency_slo", "contract": "LatencySloSnapshot.v2", "queue_policy": "durable", "max_age_ms": 10000}
+  ],
+  "forbidden_contracts": [
+    "VehicleCommand",
+    "TrajectorySetpoint",
+    "OffboardControlMode",
+    "ActuatorMotors",
+    "VehicleRatesSetpoint"
+  ]
+}

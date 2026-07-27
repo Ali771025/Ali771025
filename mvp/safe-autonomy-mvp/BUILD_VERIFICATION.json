@@ -1,0 +1,44 @@
+{
+  "version": "0.6.0-dev1",
+  "built_on": "2026-07-21",
+  "python_tests": {
+    "total": 78,
+    "passed": 78,
+    "failed": 0,
+    "api_optional_dependencies_enabled": true
+  },
+  "api_smoke": {
+    "status": "PASS",
+    "map_upload": "PASS",
+    "route_candidates": 3,
+    "temporal_guard": "PASS",
+    "readiness": "READY",
+    "energy_feasible": true,
+    "route_revalidation": "CONTINUE",
+    "assurance": "PASS",
+    "unsafe_control_field_http_status": 422
+  },
+  "release_database": {
+    "file": "artifacts/mission_dev_v0.6_release.sqlite3",
+    "integrity": "ok",
+    "migrations": 6,
+    "sha256": "e73319309fc33192414d6c4963f83c9375de7a7532e7cc72c75d71cedfa04862"
+  },
+  "mission_demo": {
+    "map_status": "VALID",
+    "map_cells": 8000,
+    "route_candidates": 3,
+    "assurance_input_sha256": "d45f49382428d7839b20f0812a52d4b582ab0603f2a881f8cfb474084664ac25"
+  },
+  "wiring": {
+    "schema_version": "2.0",
+    "valid": true,
+    "sha256": "e909e1493c7e0e15abad3af80fb740cc551c85e4736abdc80cddd721e917ddae"
+  },
+  "installed_wheel": {
+    "status": "PASS",
+    "sha256": "56adbfa19ea3915fc5dcbddd979e0ae7c2d01520d1eeaf71da34de0eb4a2e73a"
+  },
+  "control_authority": "NONE",
+  "hardware_benchmark": "NOT_RUN_ON_TARGET_JETSON"
+}

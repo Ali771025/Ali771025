@@ -1,0 +1,248 @@
+{
+  "schema_version": "1.0",
+  "scenarios": [
+    {
+      "scenario_id": "preflight_nominal",
+      "title": "Nominal preflight",
+      "category": "PREFLIGHT",
+      "description": "Disarmed vehicle with healthy sensors before takeoff.",
+      "overrides": {"armed": false, "landed": false, "reported_mode": "MANUAL"},
+      "expected_recommendation": "CONTINUE",
+      "minimum_severity": "INFO"
+    },
+    {
+      "scenario_id": "landed_nominal",
+      "title": "Nominal landed state",
+      "category": "PREFLIGHT",
+      "description": "Vehicle is disarmed and landed.",
+      "overrides": {"armed": false, "landed": true, "reported_mode": "MANUAL"},
+      "expected_recommendation": "CONTINUE",
+      "minimum_severity": "INFO"
+    },
+    {
+      "scenario_id": "takeoff_nominal",
+      "title": "Nominal takeoff",
+      "category": "TAKEOFF",
+      "description": "Positive climb immediately after arming.",
+      "overrides": {"altitude_agl_m": 0.5, "vertical_speed_mps": 1.0, "phase_elapsed_s": 3.0},
+      "expected_recommendation": "CONTINUE",
+      "minimum_severity": "INFO"
+    },
+    {
+      "scenario_id": "climb_nominal",
+      "title": "Nominal climb",
+      "category": "CLIMB",
+      "description": "Healthy climb within vertical-speed limits.",
+      "overrides": {"vertical_speed_mps": 2.0, "altitude_agl_m": 25.0},
+      "expected_recommendation": "CONTINUE",
+      "minimum_severity": "INFO"
+    },
+    {
+      "scenario_id": "cruise_nominal",
+      "title": "Nominal cruise",
+      "category": "CRUISE",
+      "description": "All flight-state inputs are within the configured envelope.",
+      "overrides": {},
+      "expected_recommendation": "CONTINUE",
+      "minimum_severity": "INFO"
+    },
+    {
+      "scenario_id": "approach_nominal",
+      "title": "Nominal approach",
+      "category": "APPROACH",
+      "description": "Vehicle is descending near the goal with a clear landing zone.",
+      "overrides": {"distance_to_goal_m": 20.0, "altitude_agl_m": 25.0, "vertical_speed_mps": -0.8},
+      "expected_recommendation": "CONTINUE",
+      "minimum_severity": "INFO"
+    },
+    {
+      "scenario_id": "landing_nominal",
+      "title": "Nominal landing",
+      "category": "LANDING",
+      "description": "Controlled descent over a confirmed clear landing zone.",
+      "overrides": {"reported_mode": "LAND", "altitude_agl_m": 3.0, "vertical_speed_mps": -0.5},
+      "expected_recommendation": "CONTINUE",
+      "minimum_severity": "INFO"
+    },
+    {
+      "scenario_id": "gps_no_fix",
+      "title": "GPS quality loss",
+      "category": "NAVIGATION_FAULT",
+      "description": "GPS quality drops below the critical threshold.",
+      "overrides": {"gps_quality": 0.2},
+      "expected_recommendation": "HOLD",
+      "minimum_severity": "CRITICAL"
+    },
+    {
+      "scenario_id": "estimator_unhealthy",
+      "title": "Estimator unhealthy",
+      "category": "NAVIGATION_FAULT",
+      "description": "PX4 estimator health becomes false.",
+      "overrides": {"estimator_healthy": false},
+      "expected_recommendation": "HOLD",
+      "minimum_severity": "CRITICAL"
+    },
+    {
+      "scenario_id": "telemetry_stale",
+      "title": "Stale telemetry",
+      "category": "TIMING_FAULT",
+      "description": "Synchronized telemetry exceeds the freshness budget.",
+      "overrides": {"telemetry_age_ms": 1200},
+      "expected_recommendation": "HOLD",
+      "minimum_severity": "CRITICAL"
+    },
+    {
+      "scenario_id": "battery_return",
+      "title": "Battery return reserve",
+      "category": "ENERGY",
+      "description": "Battery reaches the configured return reserve.",
+      "overrides": {"battery_percent": 25.0},
+      "expected_recommendation": "RETURN",
+      "minimum_severity": "HIGH"
+    },
+    {
+      "scenario_id": "battery_critical",
+      "title": "Battery landing reserve",
+      "category": "ENERGY",
+      "description": "Battery reaches the configured landing reserve.",
+      "overrides": {"battery_percent": 10.0},
+      "expected_recommendation": "LAND",
+      "minimum_severity": "CRITICAL"
+    },
+    {
+      "scenario_id": "link_loss",
+      "title": "Communication link loss",
+      "category": "COMMUNICATION",
+      "description": "Link quality drops below the configured minimum.",
+      "overrides": {"link_quality": 0.1},
+      "expected_recommendation": "RETURN",
+      "minimum_severity": "CRITICAL"
+    },
+    {
+      "scenario_id": "geofence_near",
+      "title": "Near geofence boundary",
+      "category": "GEOFENCE",
+      "description": "Vehicle is inside but close to the geofence boundary.",
+      "overrides": {"geofence_margin_m": 5.0},
+      "expected_recommendation": "REQUEST_REPLAN",
+      "minimum_severity": "WARNING"
+    },
+    {
+      "scenario_id": "geofence_breach",
+      "title": "Geofence breach",
+      "category": "GEOFENCE",
+      "description": "Vehicle position is outside the approved geofence.",
+      "overrides": {"geofence_margin_m": -2.0},
+      "expected_recommendation": "RETURN",
+      "minimum_severity": "CRITICAL"
+    },
+    {
+      "scenario_id": "route_deviation",
+      "title": "Route deviation",
+      "category": "ROUTE",
+      "description": "Vehicle deviates materially from the validated A* route.",
+      "overrides": {"route_deviation_m": 20.0},
+      "expected_recommendation": "REQUEST_REPLAN",
+      "minimum_severity": "HIGH"
+    },
+    {
+      "scenario_id": "obstacle_ttc",
+      "title": "Calibrated obstacle TTC",
+      "category": "PERCEPTION",
+      "description": "Depth and tracking produce a critical time-to-collision.",
+      "overrides": {"obstacle_ttc_s": 3.0},
+      "expected_recommendation": "HOLD",
+      "minimum_severity": "CRITICAL"
+    },
+    {
+      "scenario_id": "terrain_clearance",
+      "title": "Terrain clearance violation",
+      "category": "TERRAIN",
+      "description": "Current altitude is below the minimum terrain clearance.",
+      "overrides": {"terrain_clearance_m": 8.0},
+      "expected_recommendation": "HOLD",
+      "minimum_severity": "CRITICAL"
+    },
+    {
+      "scenario_id": "excessive_tilt",
+      "title": "Excessive attitude tilt",
+      "category": "DYNAMICS",
+      "description": "Roll exceeds the configured analysis envelope.",
+      "overrides": {"roll_deg": 68.0},
+      "expected_recommendation": "ABORT",
+      "minimum_severity": "CRITICAL"
+    },
+    {
+      "scenario_id": "excessive_speed",
+      "title": "Excessive ground speed",
+      "category": "DYNAMICS",
+      "description": "Ground speed exceeds the configured envelope.",
+      "overrides": {"ground_speed_mps": 38.0},
+      "expected_recommendation": "HOLD",
+      "minimum_severity": "HIGH"
+    },
+    {
+      "scenario_id": "excessive_descent",
+      "title": "Excessive descent rate",
+      "category": "DYNAMICS",
+      "description": "Vertical descent rate exceeds the configured envelope.",
+      "overrides": {"vertical_speed_mps": -6.0},
+      "expected_recommendation": "HOLD",
+      "minimum_severity": "CRITICAL"
+    },
+    {
+      "scenario_id": "takeoff_no_climb",
+      "title": "Takeoff without climb",
+      "category": "TAKEOFF",
+      "description": "Takeoff phase exceeds its time budget without altitude gain.",
+      "overrides": {"altitude_agl_m": 0.5, "vertical_speed_mps": 0.3, "phase_elapsed_s": 20.0},
+      "expected_recommendation": "ABORT",
+      "minimum_severity": "CRITICAL"
+    },
+    {
+      "scenario_id": "landing_zone_blocked",
+      "title": "Landing zone blocked",
+      "category": "LANDING",
+      "description": "Approach/landing is active but the landing zone is not clear.",
+      "overrides": {"reported_mode": "LAND", "altitude_agl_m": 4.0, "vertical_speed_mps": -0.5, "landing_zone_clear": false},
+      "expected_recommendation": "HOLD",
+      "minimum_severity": "CRITICAL"
+    },
+    {
+      "scenario_id": "camera_loss",
+      "title": "Camera stream loss",
+      "category": "PERCEPTION",
+      "description": "GStreamer camera health becomes false.",
+      "overrides": {"camera_healthy": false},
+      "expected_recommendation": "REQUEST_SENSOR_UPDATE",
+      "minimum_severity": "WARNING"
+    },
+    {
+      "scenario_id": "tracker_loss",
+      "title": "Tracker unavailable",
+      "category": "PERCEPTION",
+      "description": "YOLO tracker health becomes false and TTC cannot be trusted.",
+      "overrides": {"tracker_healthy": false},
+      "expected_recommendation": "REQUEST_SENSOR_UPDATE",
+      "minimum_severity": "WARNING"
+    },
+    {
+      "scenario_id": "map_stale",
+      "title": "Stale uploaded map",
+      "category": "MAP",
+      "description": "Uploaded map exceeds its configured age limit.",
+      "overrides": {"map_age_ms": 172800000},
+      "expected_recommendation": "REQUEST_SENSOR_UPDATE",
+      "minimum_severity": "WARNING"
+    },
+    {
+      "scenario_id": "illegal_phase_transition",
+      "title": "Illegal phase transition",
+      "category": "STATE_MACHINE",
+      "description": "A landing phase is followed directly by cruise.",
+      "overrides": {"previous_phase": "LANDING"},
+      "expected_recommendation": "HOLD",
+      "minimum_severity": "HIGH"
+    }
+  ]
+}

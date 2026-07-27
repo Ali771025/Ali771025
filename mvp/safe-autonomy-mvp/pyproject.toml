@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "safe-autonomy-mvp"
+version = "0.6.0.dev1"
+description = "Safety-first SIL core for a non-weapon autonomous research platform"
+readme = "README_FA.md"
+requires-python = ">=3.11"
+license = {text = "Research-only"}
+authors = [{name = "Research Team"}]
+dependencies = []
+
+[project.optional-dependencies]
+perception = [
+  "ultralytics>=8.3,<9",
+  "opencv-python-headless>=4.10,<5",
+  "numpy>=1.26,<3"
+]
+gstreamer = [
+  "PyGObject>=3.46,<4"
+]
+rag = [
+  "sentence-transformers>=3.4,<4",
+  "transformers>=4.51,<5"
+]
+maps = [
+  "rasterio>=1.4,<2"
+]
+mission-api = [
+  "fastapi>=0.115,<1",
+  "uvicorn[standard]>=0.34,<1",
+  "python-multipart>=0.0.20,<1",
+  "httpx>=0.28,<1"
+]
+
+[project.scripts]
+safe-autonomy-sim = "safe_autonomy.simulator:main"
+safe-autonomy-video = "safe_autonomy.video_pipeline:main"
+safe-autonomy-db = "safe_autonomy.db_cli:main"
+safe-autonomy-ai-demo = "safe_autonomy.ai_demo:main"
+safe-autonomy-ros2 = "safe_autonomy.ros2_bridge:main"
+safe-autonomy-realtime-vision = "safe_autonomy.realtime_vision:main"
+safe-autonomy-wiring = "safe_autonomy.wiring:main"
+safe-autonomy-mission = "safe_autonomy.mission_analysis:main"
+safe-autonomy-mission-api = "safe_autonomy.mission_api:main"
+safe-autonomy-assurance-demo = "safe_autonomy.assurance_demo:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.data-files]
+safe_autonomy_migrations = ["migrations/*.sql"]
+safe_autonomy_knowledge = ["knowledge/*.md"]
+safe_autonomy_config = ["config/*.json", "config/*.yaml"]
+safe_autonomy_maps = ["maps/*.geojson"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

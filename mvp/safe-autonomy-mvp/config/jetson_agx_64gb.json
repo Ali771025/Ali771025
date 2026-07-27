@@ -1,0 +1,47 @@
+{
+  "schema_version": "2.0",
+  "target": "Jetson AGX 64GB",
+  "profile": "development-sil",
+  "memory_budget_gib": {
+    "os_and_cuda_reserve": 12,
+    "vision_yolo_tensorrt": 12,
+    "local_llm": 18,
+    "embedding_reranker": 8,
+    "maps_planning_scenarios": 6,
+    "database_stream_buffers": 4
+  },
+  "mission_analysis": {
+    "maximum_map_cells": 4000000,
+    "planner_workers": 4,
+    "maximum_alternatives": 5,
+    "default_alternatives": 3,
+    "default_resolution_m": 2.0,
+    "obstacle_inflation_m": 2.0,
+    "minimum_terrain_clearance_m": 20.0,
+    "route_timeout_ms": 5000,
+    "scenario_parallelism": 4
+  },
+  "runtime_assurance": {
+    "temporal_maximum_age_ms": 250,
+    "cross_source_skew_ms": 100,
+    "heartbeat_maximum_age_ms": 1500,
+    "dynamic_prediction_horizon_s": 8,
+    "route_revalidation_hz": 5,
+    "replan_cooldown_ms": 3000,
+    "latency_sample_capacity": 4096,
+    "route_plan_p95_budget_ms": 5000
+  },
+  "scheduling": {
+    "realtime_vision_priority": "high",
+    "telemetry_sync_priority": "high",
+    "deterministic_decision_priority": "high",
+    "route_planning_priority": "normal",
+    "rag_llm_priority": "low"
+  },
+  "safety": {
+    "px4_publishers_enabled": false,
+    "llm_control_authority": "NONE",
+    "route_requires_independent_validation": true,
+    "unknown_map_cells_are_blocked": true
+  }
+}

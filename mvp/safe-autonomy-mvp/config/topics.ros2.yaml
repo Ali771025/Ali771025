@@ -1,0 +1,50 @@
+schema_version: "1.0"
+mode: read_only
+topics:
+  gps:
+    name: /fmu/out/vehicle_gps_position
+    type: px4_msgs/msg/VehicleGpsPosition
+    qos: best_effort_sensor_data
+    maximum_age_ms: 500
+  imu:
+    name: /fmu/out/sensor_combined
+    type: px4_msgs/msg/SensorCombined
+    qos: best_effort_sensor_data
+    maximum_age_ms: 100
+  barometer:
+    name: /fmu/out/vehicle_air_data
+    type: px4_msgs/msg/VehicleAirData
+    qos: best_effort_sensor_data
+    maximum_age_ms: 500
+  magnetometer:
+    name: /fmu/out/sensor_mag
+    type: px4_msgs/msg/SensorMag
+    qos: best_effort_sensor_data
+    maximum_age_ms: 250
+  airspeed:
+    name: /fmu/out/airspeed_validated
+    type: px4_msgs/msg/AirspeedValidated
+    qos: best_effort_sensor_data
+    maximum_age_ms: 500
+  rangefinder:
+    name: /fmu/out/distance_sensor
+    type: px4_msgs/msg/DistanceSensor
+    qos: best_effort_sensor_data
+    maximum_age_ms: 250
+  battery:
+    name: /fmu/out/battery_status
+    type: px4_msgs/msg/BatteryStatus
+    qos: best_effort_sensor_data
+    maximum_age_ms: 1000
+  yolo:
+    name: /safe_autonomy/perception_json
+    type: std_msgs/msg/String
+    qos: best_effort_sensor_data
+    maximum_age_ms: 500
+forbidden_publish_topics:
+  - /fmu/in/vehicle_command
+  - /fmu/in/trajectory_setpoint
+  - /fmu/in/vehicle_rates_setpoint
+  - /fmu/in/vehicle_attitude_setpoint
+  - /fmu/in/actuator_motors
+

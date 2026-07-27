@@ -1,0 +1,36 @@
+requirement,hazard,control,test,evidence
+FR-01,Out-of-order sensor data,Timestamp ordering and immutable snapshot,ContractTests.test_rejects_out_of_order_pose,unit-test log
+FR-04,Stale world state,Freshness and source-health gates,WorldModelTests.test_stale_sources_are_explicit,gate trace
+FR-07,Unsafe trajectory,Geofence dynamics collision and authority gates,PlannerAndSafetyTests,gate trace
+NFR-Fault,Advisory or integration loss,Domain core has no dependency on advisory services,ScenarioTests.test_faults_fail_closed,SIL report
+NFR-Audit,Untraceable decision,Correlation ID plus JSONL audit,MissionTests.test_nominal_intent_reaches_ready_and_audits,audit.jsonl
+NFR-DB,Partial or incompatible persistence,Migration plus FK plus transactional repository,DatabaseTests,SQLite test database
+FR-Video,Unknown input or model version,SHA-256 metadata and model version per video run,DatabaseTests.test_video_run_and_detection_are_persisted,video_runs row
+FR-Perception,2D box mistaken for distance,Detection2D remains separate from WorldObstacle,Detection2D contract,architecture decision 8
+FR-Telemetry,Stale or unsynchronized GPS/IMU,Timestamp quality and skew gates,SensorFusionTests,telemetry_frames stale_sources
+FR-RAG,Missing or irrelevant evidence,Dense lexical graph RRF plus reranker,HybridRagTests,rag_evidence provenance
+FR-KG,Unsupported relationship,Every confirmed edge references an evidence chunk,HybridRagTests,knowledge_edges foreign key
+FR-LLM,Direct numeric flight command,Closed schema and unknown-field rejection,AdvisoryTests.test_parser_rejects_direct_numeric_command_field,reject event
+FR-LLM-Evidence,Hallucinated citation,Evidence allowlist and TTL gate,AdvisoryTests.test_evidence_gate_rejects_unknown_evidence_and_long_ttl,advisory gate reasons
+NFR-ROS2,Unauthorized command publisher,Read-only bridge and forbidden topic contract,Px4NormalizerTests,topics.ros2.yaml
+FR-Stream,Unbounded latency under load,One-buffer appsink plus drop-oldest queues,GStreamerIoTests,drop counter and module health
+FR-Track,Unstable object identity,Persistent ByteTrack plus deterministic IoU test fallback,TrackingTests,vision_objects track_id
+FR-Sync,Wrong camera/GPS/IMU association,Nearest same-host monotonic match with skew limit,MultimodalVisionTests,sensor_vision_sync row
+NFR-Wiring,Hidden or unsafe module connection,Versioned typed wiring and startup validator,WiringTests,wiring_revisions checksum
+NFR-Control,Advisory reaches flight output,Forbidden contract and reachability validation,WiringTests.test_advisory_to_actuator_path_is_rejected,validation reasons
+FR-Map,Untrusted or malformed map,Allowlisted parser cell limit checksum and analysis,MapIngestionTests,mission_maps analysis_json
+FR-Route,Primary route blocked,Deterministic multi-criteria A-star alternatives,MissionRoutePlannerTests,route_candidates rows
+FR-Terrain,Unsafe terrain clearance,2.5D altitude profile and independent validation,MissionRoutePlannerTests,route_points altitude_m
+FR-FlightState,Unrecognized flight anomaly,Typed phase analyzer and bounded recommendation,FlightScenarioTests,flight_assessments findings
+FR-Scenario,Regression hidden from operator,Versioned fault injection with expected/actual result,FlightScenarioTests.test_all_declared_flight_scenarios_pass,scenario_runs
+NFR-Jetson,Resource exhaustion on edge target,Explicit AGX 64GB budgets map cell cap and bounded alternatives,MapIngestionTests.test_map_cell_limit_rejects_oversized_upload,jetson_agx_64gb.json
+FR-Time,Stale future or regressing sensor clock,Temporal sequence freshness future and skew guard,TemporalGuardTests,temporal_observations row
+FR-Health,Required process loss hidden from supervisor,Heartbeat dependency readiness with fail-closed required modules,HealthManagerTests,system_readiness_snapshots row
+FR-DynamicRisk,Moving track omitted from route risk,Fresh metric-track projection into immutable bounded overlay,DynamicRiskTests,dynamic risk audit contract
+FR-RouteMonitor,Obstacle between sparse route vertices,Full Bresenham corridor sampling and cross-track projection,RouteRevalidationTests,route_revalidations row
+FR-Replan,Repeated replan proposal oscillation,Noncritical cooldown that never downgrades HOLD,RouteRevalidationTests.test_noncritical_replan_is_debounced,revalidation reasons
+FR-Energy,Route consumes landing reserve,Conservative route energy and battery reserve gate,EnergyTests,energy_assessments row
+FR-Wind,Estimate outside calibrated wind envelope,Explicit warning propagated into mission assurance,EnergyTests,energy gate trace
+NFR-Latency,No tail-latency evidence,Bounded samples with P50 P95 P99 and budget ratio,ObservabilityTests,latency_slo_snapshots row
+FR-Assurance,Disconnected safety evidence,Content-addressed multi-gate PASS WARN FAIL report,AssuranceRepositoryTests,assurance_reports row
+NFR-API,Control field injected into analysis API,Strict adapter denylist and HTTP 422,MissionApiV2Tests.test_control_fields_are_rejected_by_analysis_adapter,API response audit

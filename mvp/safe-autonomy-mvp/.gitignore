@@ -1,0 +1,20 @@
+# Byte-compiled / virtualenv
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+*.egg
+
+# Build artifacts (not to be shipped in release zips)
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+
+# Runtime database / generated content
+artifacts/*.db
+artifacts/*.sqlite3
+artifacts/*.sqlite3-shm
+artifacts/*.sqlite3-wal
+artifacts/*.jsonl
+artifacts/frames/

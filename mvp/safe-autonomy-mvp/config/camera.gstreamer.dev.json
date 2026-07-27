@@ -1,0 +1,63 @@
+{
+  "schema_version": "1.0",
+  "profiles": {
+    "magewell_sdi_1080p25": {
+      "source_type": "V4L2",
+      "width_px": 1920,
+      "height_px": 1080,
+      "fps_num": 25,
+      "fps_den": 1,
+      "pipeline": "v4l2src device={device} io-mode=2 do-timestamp=true ! video/x-raw,format=YUY2,width={width},height={height},framerate={fps_num}/{fps_den} ! queue max-size-buffers=2 leaky=downstream ! videoconvert ! video/x-raw,format=BGR ! appsink name=camera_sink emit-signals=true max-buffers=1 drop=true sync=false"
+    },
+    "usb_uvc_1080p10": {
+      "source_type": "V4L2",
+      "width_px": 1920,
+      "height_px": 1080,
+      "fps_num": 10,
+      "fps_den": 1,
+      "pipeline": "v4l2src device={device} io-mode=2 do-timestamp=true ! video/x-raw,format=YUY2,width={width},height={height},framerate={fps_num}/{fps_den} ! queue max-size-buffers=2 leaky=downstream ! videoconvert ! video/x-raw,format=BGR ! appsink name=camera_sink emit-signals=true max-buffers=1 drop=true sync=false"
+    },
+    "rtsp_h264_x86": {
+      "source_type": "RTSP",
+      "width_px": 1920,
+      "height_px": 1080,
+      "fps_num": 25,
+      "fps_den": 1,
+      "pipeline": "rtspsrc location={uri} protocols=tcp latency=100 drop-on-latency=true ! rtph264depay ! h264parse ! avdec_h264 ! queue max-size-buffers=2 leaky=downstream ! videoconvert ! videoscale ! video/x-raw,format=BGR,width={width},height={height} ! appsink name=camera_sink emit-signals=true max-buffers=1 drop=true sync=false"
+    },
+    "rtsp_h264_jetson": {
+      "source_type": "RTSP",
+      "width_px": 1920,
+      "height_px": 1080,
+      "fps_num": 25,
+      "fps_den": 1,
+      "pipeline": "rtspsrc location={uri} protocols=tcp latency=100 drop-on-latency=true ! rtph264depay ! h264parse ! nvv4l2decoder enable-max-performance=true ! queue max-size-buffers=2 leaky=downstream ! nvvidconv ! video/x-raw,format=BGRx,width={width},height={height} ! videoconvert ! video/x-raw,format=BGR ! appsink name=camera_sink emit-signals=true max-buffers=1 drop=true sync=false"
+    },
+    "file_h264_x86": {
+      "source_type": "FILE",
+      "width_px": 1920,
+      "height_px": 1080,
+      "fps_num": 25,
+      "fps_den": 1,
+      "pipeline": "filesrc location=\"{uri}\" ! decodebin ! queue max-size-buffers=2 leaky=downstream ! videoconvert ! videoscale ! video/x-raw,format=BGR,width={width},height={height} ! appsink name=camera_sink emit-signals=true max-buffers=1 drop=true sync=false"
+    }
+  },
+  "outputs": {
+    "null": {
+      "description": "Process and persist frames without network publication",
+      "pipeline": ""
+    },
+    "rtp_udp_x86": {
+      "description": "Low-latency annotated H.264 over RTP/UDP",
+      "pipeline": "appsrc name=video_src is-live=true format=time block=false caps=video/x-raw,format=BGR,width={width},height={height},framerate={fps_num}/{fps_den} ! queue max-size-buffers=2 leaky=downstream ! videoconvert ! x264enc tune=zerolatency speed-preset=ultrafast key-int-max={fps_num} bitrate={bitrate_kbps} ! h264parse config-interval=-1 ! rtph264pay pt=96 config-interval=1 ! udpsink host={host} port={port} sync=false async=false"
+    },
+    "rtp_udp_jetson": {
+      "description": "Jetson NVENC annotated H.264 over RTP/UDP",
+      "pipeline": "appsrc name=video_src is-live=true format=time block=false caps=video/x-raw,format=BGR,width={width},height={height},framerate={fps_num}/{fps_den} ! queue max-size-buffers=2 leaky=downstream ! videoconvert ! video/x-raw,format=RGBA ! nvvidconv ! video/x-raw(memory:NVMM),format=NV12 ! nvv4l2h264enc bitrate={bitrate} insert-sps-pps=true iframeinterval={fps_num} maxperf-enable=true ! h264parse config-interval=-1 ! rtph264pay pt=96 config-interval=1 ! udpsink host={host} port={port} sync=false async=false"
+    },
+    "rtsp_push_x86": {
+      "description": "Push annotated H.264 to an existing RTSP server",
+      "pipeline": "appsrc name=video_src is-live=true format=time block=false caps=video/x-raw,format=BGR,width={width},height={height},framerate={fps_num}/{fps_den} ! queue max-size-buffers=2 leaky=downstream ! videoconvert ! x264enc tune=zerolatency speed-preset=ultrafast key-int-max={fps_num} bitrate={bitrate_kbps} ! h264parse config-interval=-1 ! rtspclientsink location={publish_uri} protocols=tcp"
+    }
+  }
+}

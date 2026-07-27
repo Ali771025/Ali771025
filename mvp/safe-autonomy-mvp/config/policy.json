@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0",
+  "world_model_max_age_ms": 500,
+  "pose_max_age_ms": 250,
+  "battery_max_age_ms": 1000,
+  "minimum_quality": 0.60,
+  "minimum_battery_percent": 25.0,
+  "maximum_speed_mps": 5.0,
+  "maximum_acceleration_mps2": 3.0,
+  "minimum_obstacle_separation_m": 1.0,
+  "allowed_control_authority": "MISSION_MANAGER",
+  "geofence": {
+    "min_x_m": 0.0,
+    "max_x_m": 20.0,
+    "min_y_m": 0.0,
+    "max_y_m": 20.0
+  }
+}

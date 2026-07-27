@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0",
+  "advisory_model": "safe-advisory-qwen3-4b",
+  "ollama_url": "http://127.0.0.1:11434/api/chat",
+  "embedding_model": "Qwen/Qwen3-Embedding-0.6B",
+  "reranker_model": "Qwen/Qwen3-Reranker-0.6B",
+  "retrieval": {
+    "dense_limit": 20,
+    "lexical_limit": 20,
+    "graph_limit": 20,
+    "final_limit": 5,
+    "rrf_k": 60,
+    "graph_max_hops": 2
+  },
+  "decision_policy": {
+    "battery_return_percent": 30.0,
+    "battery_land_percent": 15.0,
+    "critical_ttc_s": 5.0,
+    "minimum_object_confidence": 0.60,
+    "maximum_proposal_ttl_ms": 5000
+  }
+}

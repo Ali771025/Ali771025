@@ -1,0 +1,55 @@
+# Root-level ignores for the monorepo workspace
+*.zip
+*.tar.gz
+*.tgz
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+*.egg-info/
+*.egg
+build/
+dist/
+coverage/
+htmlcov/
+
+# Node
+node_modules/
+.npm/
+.next/
+.nuxt/
+.parcel-cache/
+.svelte-kit/
+.vite/
+.output/
+*.tsbuildinfo
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Env / secrets
+.env
+.env.local
+*.pem
+
+# Runtime DB files
+*.db
+*.db-shm
+*.db-wal
+*.sqlite3
+*.sqlite3-shm
+*.sqlite3-wal
+artifacts/frames/
+artifacts/*.jsonl

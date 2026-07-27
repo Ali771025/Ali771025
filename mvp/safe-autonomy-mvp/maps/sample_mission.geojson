@@ -1,0 +1,38 @@
+{
+  "type": "FeatureCollection",
+  "properties": {
+    "coordinate_system": "LOCAL_ENU",
+    "resolution_m": 2.0,
+    "origin_x_m": 0.0,
+    "origin_y_m": 0.0,
+    "width_cells": 100,
+    "height_cells": 80
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {"layer": "geofence", "name": "research-area"},
+      "geometry": {"type": "Polygon", "coordinates": [[[2, 2], [196, 2], [196, 156], [2, 156], [2, 2]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"layer": "obstacle", "name": "building-a"},
+      "geometry": {"type": "Polygon", "coordinates": [[[60, 20], [90, 20], [90, 75], [60, 75], [60, 20]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"layer": "restricted", "name": "restricted-zone"},
+      "geometry": {"type": "Polygon", "coordinates": [[[115, 70], [155, 70], [155, 105], [115, 105], [115, 70]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"layer": "risk", "risk": 0.65, "name": "high-wind-zone"},
+      "geometry": {"type": "Polygon", "coordinates": [[[20, 90], [80, 90], [80, 135], [20, 135], [20, 90]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"layer": "landing_zone", "name": "safe-landing-zone"},
+      "geometry": {"type": "Polygon", "coordinates": [[[165, 115], [190, 115], [190, 145], [165, 145], [165, 115]]]}
+    }
+  ]
+}
