@@ -1,6 +1,6 @@
 # گزارش اقدام بر اساس نیازمندی‌های پروپوزال و RFP سامانه گزارش‌ساز هوشمند و NL2SQL
 
-> فایل PDF پیوست‌شده در مسیر اعلامی Arena یعنی `/home/user/uploads/پروپوزال_فنی_سامانه_هوشمند_گزارش_ساز_RFP.pdf` داخل این sandbox قابل مشاهده نبود؛ بنابراین این گزارش بر اساس متن RFP/پروپوزال ارائه‌شده در گفتگو و نقشه ۴۵ صفحه‌ای موجود در `docs/PAGE_MAP_45.md` تکمیل شده است. اگر PDF دوباره Attach شود، همین ماتریس با متن PDF نیز تطبیق داده می‌شود.
+> فایل PDF پروپوزال از commit آپلودی repo بازیابی و خوانده شد. متن استخراج‌شده در `docs/PROPOSAL_EXTRACTED_TEXT.md` و ماتریس ردیابی تخصصی در `docs/PROPOSAL_REQUIREMENT_TRACEABILITY.md` ثبت شده است.
 
 ## محورهای تکمیل‌شده در این مرحله
 
@@ -51,12 +51,12 @@
 - `TokenAccountingPanel` برای نمایش تخمین Token و هزینه در صفحات گزارش اضافه شد.
 - API Clientهای Frontend برای مسیرهای جدید RBAC، Audit Timeline، Wallet، API Key Rotation، Regression، Policy Sync و Token Estimate کامل شدند.
 
-## کارهای باقی‌مانده پس از دریافت PDF واقعی
+## کارهای انجام‌شده پس از خواندن PDF واقعی
 
-1. استخراج بندهای دقیق PDF و شماره‌گذاری requirementها.
-2. ایجاد Requirement Traceability Matrix با ستون‌های `Proposal Section`, `RFP Requirement`, `Backend`, `Frontend`, `Test`, `Status`.
-3. تطبیق دقیق فرم‌ها و فیلدها با واژگان رسمی PDF.
-4. اضافه‌کردن Acceptance Test برای بندهای الزامی پروپوزال.
+1. متن PDF استخراج و در `docs/PROPOSAL_EXTRACTED_TEXT.md` ذخیره شد.
+2. ماتریس ردیابی تخصصی با الزام‌های کلیدی در `docs/PROPOSAL_REQUIREMENT_TRACEABILITY.md` ساخته شد.
+3. Gapهای Production مثل Keycloak/Kong، AST SQL Validator، Connector Agent، ۲۰ Gold Test واقعی، SBOM و Observability استخراج شدند.
+4. تست‌های Backend و Frontend برای مسیرهای حساس افزایش یافتند.
 
 ## بازبینی دوم و تکمیل تخصصی
 
