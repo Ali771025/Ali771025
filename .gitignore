@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+*.egg-info/
+backend/test_nl2sql_reporting.db
+
+# Node
+node_modules/
+dist/
+coverage/
+.vite/
+
+# Env and local data
+.env
+.env.local
+.env.*.local
+postgres_data/
+*.sqlite3
+
+# IDE
+.idea/
+.vscode/
+.DS_Store

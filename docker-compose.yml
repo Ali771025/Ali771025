@@ -1,0 +1,72 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: nl2sql-postgres
+    environment:
+      POSTGRES_DB: nl2sql_reporting
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d nl2sql_reporting"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: nl2sql-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    container_name: nl2sql-backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@postgres:5432/nl2sql_reporting
+      REDIS_URL: redis://redis:6379/0
+      FRONTEND_ORIGIN: http://localhost:5173
+      AUTO_CREATE_DB: "false"
+      SEED_DEMO_DATA: "true"
+    command: >
+      sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: nl2sql-frontend
+    environment:
+      VITE_API_BASE_URL: http://localhost:8000/api/v1
+    depends_on:
+      - backend
+    ports:
+      - "5173:5173"
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:25.0
+    profiles: ["identity"]
+    command: start-dev
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "8080:8080"
+
+volumes:
+  postgres_data:
