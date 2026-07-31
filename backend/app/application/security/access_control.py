@@ -92,6 +92,11 @@ class AccessControlService:
         if required_scope and "*" not in scopes and required_scope not in scopes:
             return AccessDecision(False, "SCOPE_DENIED", "Scope لازم برای موضوع گزارش وجود ندارد.")
 
+        requested_regions = set(access_context.get("region") or [])
+        user_regions = set(user.region or []) if user else set()
+        if user_regions and requested_regions and not requested_regions.issubset(user_regions):
+            return AccessDecision(False, "REGION_SCOPE_DENIED", "کاربر به همه مناطق درخواست‌شده دسترسی ندارد.")
+
         access_policy = software.access_policy or {}
         security_policy = software.security_policy or {}
         max_rows = int(access_policy.get("max_rows", security_policy.get("max_rows", 20)))

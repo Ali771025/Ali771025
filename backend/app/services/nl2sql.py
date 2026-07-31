@@ -96,6 +96,8 @@ def generate_report_contract(
     payload: ReportRequestIn,
     *,
     idempotency_key: str | None = None,
+    api_key_id: str | None = None,
+    api_key_prefix: str | None = None,
 ) -> ReportSuccess | ReportClarification | ReportRejected:
     started = time.perf_counter()
     audit_id = new_audit_id()
@@ -142,6 +144,7 @@ def generate_report_contract(
             external_software_id=payload.software_id,
             software_version=payload.software_version,
             user_id=payload.user_id,
+            api_key_id=api_key_id,
             question_redacted=str(question_redacted),
             access_context=access_context,
             locale=payload.locale,
@@ -167,6 +170,7 @@ def generate_report_contract(
             result="success" if status in {"success", "needs_clarification"} else "rejected",
             rejection_reason=kwargs.get("rejection_reason_code"),
             request_id=request_uuid,
+            api_key_prefix=api_key_prefix,
         )
         db.commit()
 

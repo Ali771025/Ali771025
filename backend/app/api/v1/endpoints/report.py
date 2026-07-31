@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Request, status
+from fastapi import APIRouter, HTTPException, Request, status
 from sqlalchemy import select
 
 from app.api.deps import DbSession
+from app.application.security.api_key_auth import APIKeyAuthService
 from app.application.security.billing import TokenAccountingService
 from app.models.domain import Feedback, ReportRequest, SoftwareProduct, Tenant, User
 from app.schemas.domain import (
@@ -29,10 +30,19 @@ def generate_report(payload: ReportRequestIn, request: Request, db: DbSession) -
     sent back to the central service.
     """
 
+    raw_api_key = request.headers.get("x-api-key")
+    principal = APIKeyAuthService().authenticate(db, raw_api_key)
+    if raw_api_key and not principal:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail={"code": "INVALID_API_KEY"})
+    if principal:
+        merged_scopes = sorted(set(payload.access_context.scopes) | set(principal.scopes))
+        payload.access_context.scopes = merged_scopes
     return generate_report_contract(
         db,
         payload,
         idempotency_key=getattr(request.state, "idempotency_key", None) or request.headers.get("idempotency-key"),
+        api_key_id=principal.key_id if principal else None,
+        api_key_prefix=principal.prefix if principal else None,
     )
 
 

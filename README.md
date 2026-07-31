@@ -142,3 +142,18 @@ pytest
   - پنل `TokenAccountingPanel` برای نمایش تخمین Prompt/Completion Token، هزینه و مانده اعتبار پیش از درخواست گزارش.
 
 در تولید نهایی، Guardها باید به JWT/Keycloak و ماتریس RBAC Backend متصل شوند و Token Accounting فقط مقدار قطعی Backend را مبنا قرار دهد.
+
+## تکمیل مرحله دسترسی، Token Accounting و اقدام‌های پروپوزال
+
+در مرحله جدید، مسیر درخواست گزارش از نظر امنیت و مالی حرفه‌ای‌تر شد:
+
+- Access Control مرکزی برای Tenant، نرم‌افزار، کاربر، Scope، Role، منطقه، `policy_hash` و `access_fingerprint`
+- API تخمین هزینه و Token: `POST /api/v1/reports/token-estimate`
+- محاسبه Prompt/Completion Token و هزینه در `POST /api/v1/reports/generate`
+- کنترل اعتبار کیف و ثبت مصرف در `WalletLedger`
+- پشتیبانی از `X-API-Key` برای درخواست گزارش و ثبت Prefix در Audit
+- Idempotency برای جلوگیری از کسر اعتبار تکراری
+- Use Caseهای تکمیلی برای Tenant، RBAC Matrix، Audit Timeline، Wallet، API Key Rotation، Connector Policy Sync و Gold Test Regression
+- Guard سطح دسترسی در Frontend و پنل تخمین Token/Cost برای صفحات گزارش
+
+گزارش اقدام در `docs/PROPOSAL_ACTION_LOG.md` ثبت شده است.

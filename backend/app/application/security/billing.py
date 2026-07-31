@@ -95,6 +95,21 @@ class TokenAccountingService:
             completion_tokens=completion_tokens,
             cache_hit=cache_hit,
         )
+        if idempotency_key:
+            existing = db.scalar(select(WalletLedger).where(WalletLedger.financial_reference == idempotency_key))
+            if existing:
+                return BillingDecision(
+                    allowed=True,
+                    prompt_tokens=prompt_tokens,
+                    completion_tokens=completion_tokens,
+                    total_tokens=prompt_tokens + completion_tokens,
+                    estimated_cost=float(existing.amount),
+                    balance_before=float(existing.balance_before),
+                    balance_after=float(existing.balance_after),
+                    ledger_id=existing.id,
+                    tariff_id=tariff.id if tariff else None,
+                )
+
         balance_before = self.current_balance(db, tenant=tenant, user=user)
         balance_after = round(balance_before - estimated_cost, 6)
         if balance_after < 0:
