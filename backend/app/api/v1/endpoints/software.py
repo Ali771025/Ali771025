@@ -2,15 +2,21 @@ from __future__ import annotations
 
 import difflib
 import secrets
-from datetime import datetime, timezone
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import func, select
 
-from app.api.deps import CurrentUser, DbSession
+from app.api.deps import CurrentUser, DbSession, actor_context_from_request
+from app.application.use_cases.knowledge_management import (
+    PublishSnapshotUseCase,
+    StandardizeKnowledgeUseCase,
+    UploadKnowledgeDocumentUseCase,
+)
+from app.application.use_cases.software_catalog import CreateSoftwareUseCase, CreateVersionUseCase
 from app.core.rbac import Permission, require_permissions
 from app.core.security import api_key_prefix, get_password_hash
+from app.infrastructure.uow import SQLAlchemyUnitOfWork
 from app.models.domain import (
     APIKey,
     Feedback,
@@ -60,7 +66,12 @@ from app.schemas.domain import (
     VersionRead,
 )
 from app.services.audit import write_audit
-from app.services.knowledge import checksum, detect_document_type, extract_metadata, validate_knowledge
+from app.services.knowledge import (
+    checksum,
+    detect_document_type,
+    extract_metadata,
+    validate_knowledge,
+)
 from app.services.nl2sql import generate_report_contract
 
 router = APIRouter(prefix="/software-admin", tags=["پنل مدیر نرم‌افزار"])
@@ -118,13 +129,11 @@ def create_software(
     db: DbSession,
     current_user: CurrentUser = Depends(require_permissions(Permission.SOFTWARE_WRITE)),
 ) -> SoftwareRead:
-    if db.scalar(select(SoftwareProduct).where(SoftwareProduct.code == payload.code)):
-        raise HTTPException(status_code=409, detail="software code already exists")
-    product = SoftwareProduct(**payload.model_dump())
-    db.add(product)
-    db.flush()
-    write_audit(db, action="software.create", target_type="software", target_id=product.id, actor_id=current_user.id, tenant_id=payload.tenant_id, after_value=payload.model_dump(mode="json"), request=request)
-    db.commit()
+    use_case = CreateSoftwareUseCase(SQLAlchemyUnitOfWork(db))
+    product = use_case.execute(
+        payload.model_dump(),
+        actor_context_from_request(request, current_user),
+    )
     db.refresh(product)
     return product
 
@@ -164,11 +173,11 @@ def create_version(
     db: DbSession,
     current_user: CurrentUser = Depends(require_permissions(Permission.SOFTWARE_WRITE)),
 ) -> VersionRead:
-    version = SoftwareVersion(**payload.model_dump(), version_hash=checksum(f"{payload.software_id}:{payload.version_number}"))
-    db.add(version)
-    db.flush()
-    write_audit(db, action="software.version_create", target_type="software_version", target_id=version.id, actor_id=current_user.id, software_id=payload.software_id, after_value=payload.model_dump(mode="json"), request=request)
-    db.commit()
+    use_case = CreateVersionUseCase(SQLAlchemyUnitOfWork(db))
+    version = use_case.execute(
+        payload.model_dump(),
+        actor_context_from_request(request, current_user),
+    )
     db.refresh(version)
     return version
 
@@ -185,23 +194,11 @@ def upload_knowledge(
     db: DbSession,
     current_user: CurrentUser = Depends(require_permissions(Permission.KNOWLEDGE_WRITE)),
 ) -> KnowledgeDocumentRead:
-    detected = detect_document_type(payload.content, payload.document_type)
-    metadata = extract_metadata(payload.content)
-    quality_score, errors, warnings = validate_knowledge(payload.content, payload.document_type)
-    document = KnowledgeDocument(
-        **payload.model_dump(),
-        checksum=checksum(payload.content),
-        detected_type=detected,
-        extracted_metadata=metadata,
-        quality_score=quality_score,
-        errors=errors,
-        warnings=warnings,
-        approval_status="review" if errors or warnings else "approved",
+    use_case = UploadKnowledgeDocumentUseCase(SQLAlchemyUnitOfWork(db))
+    document = use_case.execute(
+        payload.model_dump(),
+        actor_context_from_request(request, current_user),
     )
-    db.add(document)
-    db.flush()
-    write_audit(db, action="knowledge.upload", target_type="knowledge_document", target_id=document.id, actor_id=current_user.id, software_id=payload.software_id, version_id=payload.version_id, after_value={"title": payload.title, "checksum": document.checksum, "metadata": metadata}, request=request)
-    db.commit()
     db.refresh(document)
     return document
 
@@ -277,30 +274,12 @@ def standardize_knowledge(
     db: DbSession,
     current_user: CurrentUser = Depends(require_permissions(Permission.KNOWLEDGE_WRITE)),
 ) -> KnowledgeStandardizeResult:
-    documents = list(db.scalars(select(KnowledgeDocument).where(KnowledgeDocument.id.in_(payload.document_ids))))
-    blockers: list[dict[str, Any]] = []
-    conflicts: list[dict[str, Any]] = []
-    suggestions: list[dict[str, Any]] = []
-    seen_checksums: dict[str, str] = {}
-    for document in documents:
-        document.detected_type = detect_document_type(document.content, document.document_type)
-        document.extracted_metadata = extract_metadata(document.content)
-        document.quality_score, document.errors, document.warnings = validate_knowledge(document.content, document.document_type)
-        if document.errors:
-            blockers.extend({"document_id": document.id, **error} for error in document.errors)
-            document.approval_status = "rejected"
-        elif document.checksum in seen_checksums:
-            conflicts.append({"document_id": document.id, "conflicts_with": seen_checksums[document.checksum], "code": "DUPLICATE_CHECKSUM"})
-            document.approval_status = "conflict"
-        else:
-            seen_checksums[document.checksum] = document.id
-            document.approval_status = "review" if document.warnings else "approved"
-            if document.warnings:
-                suggestions.append({"document_id": document.id, "message": "برای تأیید نهایی هشدارها را بازبینی کنید."})
-    final_status = "conflict" if conflicts else "rejected" if blockers else "review" if suggestions else "approved"
-    write_audit(db, action="knowledge.standardize", target_type="knowledge_batch", actor_id=current_user.id, software_id=payload.software_id, version_id=payload.version_id, after_value={"status": final_status, "blockers": blockers, "conflicts": conflicts}, request=request)
-    db.commit()
-    return KnowledgeStandardizeResult(status=final_status, documents=documents, blockers=blockers, conflicts=conflicts, suggestions=suggestions)
+    use_case = StandardizeKnowledgeUseCase(SQLAlchemyUnitOfWork(db))
+    result = use_case.execute(
+        payload.model_dump(),
+        actor_context_from_request(request, current_user),
+    )
+    return KnowledgeStandardizeResult(**result)
 
 
 @router.post("/snapshots/publish", response_model=SnapshotRead, status_code=status.HTTP_201_CREATED)
@@ -310,40 +289,11 @@ def publish_snapshot(
     db: DbSession,
     current_user: CurrentUser = Depends(require_permissions(Permission.SNAPSHOT_PUBLISH)),
 ) -> SnapshotRead:
-    documents = list(db.scalars(select(KnowledgeDocument).where(KnowledgeDocument.id.in_(payload.document_ids))))
-    if len(documents) != len(payload.document_ids):
-        raise HTTPException(status_code=404, detail="some documents were not found")
-    blockers = [doc.id for doc in documents if doc.errors or doc.approval_status in {"rejected", "conflict"}]
-    if blockers:
-        raise HTTPException(status_code=409, detail={"code": "SNAPSHOT_BLOCKED", "documents": blockers})
-    if not payload.mandatory_test_result.get("passed", False):
-        raise HTTPException(status_code=409, detail={"code": "REGRESSION_TEST_FAILED"})
-    final_hash = checksum("|".join(sorted(doc.checksum for doc in documents)))
-    previous_snapshot = db.scalar(select(KnowledgeSnapshot).where(KnowledgeSnapshot.version_id == payload.version_id, KnowledgeSnapshot.publish_status == "published").order_by(KnowledgeSnapshot.created_at.desc()))
-    snapshot = KnowledgeSnapshot(
-        software_id=payload.software_id,
-        version_id=payload.version_id,
-        name=payload.name,
-        release_note=payload.release_note,
-        approvers=payload.approvers,
-        scheduled_at=payload.scheduled_at,
-        document_ids=payload.document_ids,
-        final_hash=final_hash,
-        conflict_report={"blockers": [], "conflicts": []},
-        regression_report=payload.mandatory_test_result,
-        publish_status="published",
-        previous_snapshot_id=previous_snapshot.id if previous_snapshot else None,
-        published_at=datetime.now(timezone.utc),
+    use_case = PublishSnapshotUseCase(SQLAlchemyUnitOfWork(db))
+    snapshot = use_case.execute(
+        payload.model_dump(),
+        actor_context_from_request(request, current_user),
     )
-    db.add(snapshot)
-    version = db.get(SoftwareVersion, payload.version_id)
-    if version:
-        version.active_snapshot_id = snapshot.id
-        version.version_hash = final_hash
-        version.status = "active"
-    db.flush()
-    write_audit(db, action="knowledge.snapshot_publish", target_type="knowledge_snapshot", target_id=snapshot.id, actor_id=current_user.id, software_id=payload.software_id, version_id=payload.version_id, after_value={"final_hash": final_hash, "document_ids": payload.document_ids}, request=request)
-    db.commit()
     db.refresh(snapshot)
     return snapshot
 
@@ -635,8 +585,9 @@ def run_gold_test(gold_test_id: str, request: Request, db: DbSession, current_us
     version = db.get(SoftwareVersion, gold.version_id)
     if not product or not version:
         raise HTTPException(status_code=409, detail="software/version missing")
-    from app.schemas.domain import AccessContext, ReportRequestIn
     import uuid
+
+    from app.schemas.domain import AccessContext, ReportRequestIn
 
     payload = ReportRequestIn(
         request_id=uuid.uuid4(),

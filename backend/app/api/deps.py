@@ -8,6 +8,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.application.common.context import ActorContext
 from app.core.security import decode_token
 from app.db.session import get_db
 from app.models.domain import User
@@ -58,4 +59,14 @@ async def get_current_user(
         tenant_id=user.tenant_id,
         roles=user.roles or [],
         scopes=user.scopes or [],
+    )
+
+
+def actor_context_from_request(request: Request, current_user: CurrentUser) -> ActorContext:
+    return ActorContext(
+        actor_id=current_user.id,
+        tenant_id=current_user.tenant_id,
+        ip=request.client.host if request.client else None,
+        user_agent=request.headers.get("user-agent"),
+        correlation_id=request.headers.get("x-correlation-id"),
     )

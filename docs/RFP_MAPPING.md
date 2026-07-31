@@ -71,3 +71,7 @@ Endpoint: `POST /api/v1/reports/generate`
 - Chain-of-Thought داخلی مدل در هیچ endpoint ذخیره یا نمایش داده نمی‌شود.
 - Connector فقط SQL خواندنی و دارای سقف ردیف را می‌پذیرد.
 - اجرای واقعی SQL باید داخل شبکه مشتری انجام شود.
+
+## بازبینی معماری
+
+برای نقد حرفه‌ای و برنامه اصلاح Clean Architecture به `docs/ARCHITECTURE_REVIEW.md` مراجعه کنید.

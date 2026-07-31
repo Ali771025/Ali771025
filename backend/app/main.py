@@ -4,8 +4,8 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import ORJSONResponse
 
+from app.api.error_handlers import register_application_exception_handlers
 from app.api.v1.router import api_router
 from app.core.config import settings
 from app.db.base import Base
@@ -31,7 +31,6 @@ app = FastAPI(
         "سامانه هوشمند گزارش‌ساز و NL2SQL شامل پنل مالک، پنل مدیر نرم‌افزار، "
         "رابط On-Premise و کنسول Connector."
     ),
-    default_response_class=ORJSONResponse,
     lifespan=lifespan,
 )
 
@@ -43,6 +42,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+register_application_exception_handlers(app)
 app.include_router(api_router, prefix=settings.api_v1_prefix)
 
 

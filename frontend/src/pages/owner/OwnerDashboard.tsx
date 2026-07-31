@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Card, MetricCard } from '../../components/Card';
-import { DataTable } from '../../components/DataTable';
-import { StatusPill } from '../../components/StatusPill';
-import { api } from '../../lib/api';
-
-type Dashboard = { metrics: { label: string; value: string | number }[]; charts: Record<string, unknown>; alerts: { severity: string; message: string }[] };
-type Row = Record<string, unknown>;
+import { Card, MetricCard } from '../../shared/ui/Card';
+import { DataTable } from '../../shared/ui/DataTable';
+import { StatusPill } from '../../shared/ui/StatusPill';
+import { ownerApi } from '../../features/owner/api/ownerApi';
+import type { AdminRow as Row, Dashboard } from '../../features/owner/model/types';
 
 export function OwnerDashboard({ token }: { token?: string }) {
   const [dashboard, setDashboard] = useState<Dashboard>();
@@ -21,10 +19,10 @@ export function OwnerDashboard({ token }: { token?: string }) {
     setMessage('در حال دریافت اطلاعات مالک...');
     try {
       const [dash, tenantsResult, modelsResult, auditResult] = await Promise.all([
-        api<Dashboard>('/owner/dashboard', {}, token),
-        api<Row[]>('/owner/tenants', {}, token),
-        api<Row[]>('/owner/models', {}, token),
-        api<Row[]>('/owner/audit-logs?limit=20', {}, token)
+        ownerApi.dashboard(token),
+        ownerApi.tenants(token),
+        ownerApi.models(token),
+        ownerApi.auditLogs(token, 20)
       ]);
       setDashboard(dash);
       setTenants(tenantsResult);
@@ -41,20 +39,20 @@ export function OwnerDashboard({ token }: { token?: string }) {
   async function createManager() {
     if (!token) return;
     const payload = { ...manager, roles: ['software_admin'], scopes: ['commission100.read'], temporary_password: 'AdminChangeMe!12345', mfa_required: true };
-    await api('/owner/managers', { method: 'POST', body: JSON.stringify(payload) }, token);
+    await ownerApi.createManager(token, payload);
     setMessage('مدیر نرم‌افزار ایجاد شد.');
   }
 
   async function createTenant() {
     if (!token) return;
-    await api('/owner/tenants', { method: 'POST', body: JSON.stringify({ ...tenant, cloud_model_policy: 'restricted', log_retention_days: 365 }) }, token);
+    await ownerApi.createTenant(token, { ...tenant, cloud_model_policy: 'restricted', log_retention_days: 365 });
     setMessage('Tenant ایجاد شد.');
     await load();
   }
 
   async function testFirstModel() {
     if (!token || !models[0]) return;
-    await api(`/owner/models/${models[0].id}/test`, { method: 'POST', body: JSON.stringify({}) }, token);
+    await ownerApi.testModel(token, String(models[0].id));
     setMessage('تست سلامت مدل انجام شد.');
     await load();
   }

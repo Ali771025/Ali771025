@@ -1,21 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Card, MetricCard } from '../../components/Card';
-import { DataTable } from '../../components/DataTable';
-import { StatusPill } from '../../components/StatusPill';
-import { api } from '../../lib/api';
-
-type Row = Record<string, unknown>;
-
-type Connector = {
-  id: string;
-  software_id: string;
-  version_id?: string | null;
-  registration_status: string;
-  policy_hash: string;
-  central_connection_status: Record<string, unknown>;
-  database_connection_status: Record<string, unknown>;
-  last_heartbeat_at?: string | null;
-};
+import { Card, MetricCard } from '../../shared/ui/Card';
+import { DataTable } from '../../shared/ui/DataTable';
+import { StatusPill } from '../../shared/ui/StatusPill';
+import { connectorApi } from '../../features/connector/api/connectorApi';
+import type { Connector, Row } from '../../features/connector/model/types';
+import { softwareAdminApi } from '../../features/software-admin/api/softwareAdminApi';
 
 export function ConnectorConsole({ token }: { token?: string }) {
   const [software, setSoftware] = useState<Row[]>([]);
@@ -27,7 +16,7 @@ export function ConnectorConsole({ token }: { token?: string }) {
 
   async function loadSoftware() {
     if (!token) return;
-    const sw = await api<Row[]>('/software-admin/software', {}, token);
+    const sw = await softwareAdminApi.listSoftware(token);
     setSoftware(sw);
     setForm((old) => ({ ...old, software_id: old.software_id || String(sw[0]?.id ?? '') }));
   }
@@ -36,27 +25,21 @@ export function ConnectorConsole({ token }: { token?: string }) {
 
   async function register() {
     if (!token) return;
-    const registered = await api<Connector>('/connectors/register', {
-      method: 'POST',
-      body: JSON.stringify({ ...form, database_dialect: 'T-SQL', timeout_seconds: 10, allowed_views: ['dbo.Commission100Cases'] })
-    }, token);
+    const registered = await connectorApi.register(token, { ...form, database_dialect: 'T-SQL', timeout_seconds: 10, allowed_views: ['dbo.Commission100Cases'] });
     setConnector(registered);
     setMessage('Connector ثبت و Policy Hash صادر شد.');
   }
 
   async function heartbeat() {
     if (!token || !connector) return;
-    const health = await api<Connector>(`/connectors/${connector.id}/health`, {}, token);
+    const health = await connectorApi.health(token, connector.id);
     setConnector(health);
     setMessage('Heartbeat و تست ارتباط ثبت شد.');
   }
 
   async function execute() {
     if (!token || !connector) return;
-    const response = await api<Row>(`/connectors/${connector.id}/execute`, {
-      method: 'POST',
-      body: JSON.stringify({ sql, parameters: { limit: 20 }, ttl: 60, signature: 'signed-by-central-api', policy_hash: connector.policy_hash, audit_id: `audit-${Date.now()}` })
-    }, token);
+    const response = await connectorApi.execute(token, connector.id, { sql, parameters: { limit: 20 }, ttl: 60, signature: 'signed-by-central-api', policy_hash: connector.policy_hash, audit_id: `audit-${Date.now()}` });
     setResult([response]);
     setMessage('اعتبارسنجی/اجرای محلی انجام شد؛ متادیتا بدون داده واقعی آماده ارسال است.');
   }

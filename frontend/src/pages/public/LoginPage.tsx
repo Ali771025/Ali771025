@@ -1,13 +1,8 @@
 import { useState } from 'react';
-import { Card, MetricCard } from '../../components/Card';
-import { api } from '../../lib/api';
+import { Card, MetricCard } from '../../shared/ui/Card';
+import { authApi } from '../../features/auth/api/authApi';
+import type { LoginResponse } from '../../features/auth/model/types';
 
-type LoginResponse = {
-  tokens?: { access_token: string; refresh_token: string } | null;
-  user: { username: string; full_name?: string; roles: string[]; permissions: string[]; mfa_required: boolean };
-  requires_mfa: boolean;
-  challenge_id?: string | null;
-};
 
 export function LoginPage({ token, setToken }: { token?: string; setToken: (token?: string) => void }) {
   const [form, setForm] = useState({ username_or_email: 'owner', password: 'OwnerChangeMe!12345', tenant_code: 'municipality-01', remember_me: true });
@@ -19,7 +14,7 @@ export function LoginPage({ token, setToken }: { token?: string; setToken: (toke
   async function login() {
     setMessage('در حال ورود...');
     try {
-      const result = await api<LoginResponse>('/auth/login', { method: 'POST', body: JSON.stringify(form) });
+      const result = await authApi.login(form);
       setUser(result.user);
       setChallengeId(result.challenge_id ?? undefined);
       if (result.tokens?.access_token) setToken(result.tokens.access_token);
@@ -31,10 +26,7 @@ export function LoginPage({ token, setToken }: { token?: string; setToken: (toke
 
   async function verifyMfa() {
     setMessage('در حال بررسی MFA...');
-    const result = await api<{ verified: boolean; tokens?: { access_token: string } }>('/auth/mfa/verify', {
-      method: 'POST',
-      body: JSON.stringify({ challenge_id: challengeId, otp_code: mfaCode })
-    });
+    const result = await authApi.verifyMfa({ challenge_id: challengeId, otp_code: mfaCode });
     if (result.tokens?.access_token) setToken(result.tokens.access_token);
     setMessage(result.verified ? 'MFA تأیید شد.' : 'MFA رد شد.');
   }

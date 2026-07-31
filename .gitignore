@@ -25,3 +25,6 @@ postgres_data/
 .idea/
 .vscode/
 .DS_Store
+
+# TypeScript
+*.tsbuildinfo

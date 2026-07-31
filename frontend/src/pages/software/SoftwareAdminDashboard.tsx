@@ -1,11 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Card, MetricCard } from '../../components/Card';
-import { DataTable } from '../../components/DataTable';
-import { StatusPill } from '../../components/StatusPill';
-import { api } from '../../lib/api';
-
-type Row = Record<string, unknown>;
-type Dashboard = { metrics: { label: string; value: string | number }[]; alerts: { message: string }[] };
+import { Card, MetricCard } from '../../shared/ui/Card';
+import { DataTable } from '../../shared/ui/DataTable';
+import { StatusPill } from '../../shared/ui/StatusPill';
+import { softwareAdminApi } from '../../features/software-admin/api/softwareAdminApi';
+import type { Row, SoftwareDashboard as Dashboard } from '../../features/software-admin/model/types';
 
 export function SoftwareAdminDashboard({ token }: { token?: string }) {
   const [dashboard, setDashboard] = useState<Dashboard>();
@@ -30,27 +28,27 @@ export function SoftwareAdminDashboard({ token }: { token?: string }) {
   async function load() {
     if (!token) return;
     try {
-      const dash = await api<Dashboard>('/software-admin/dashboard', {}, token);
-      const sw = await api<Row[]>('/software-admin/software', {}, token);
+      const dash = await softwareAdminApi.dashboard(token);
+      const sw = await softwareAdminApi.listSoftware(token);
       setDashboard(dash);
       setSoftware(sw);
       const firstSoftware = selectedSoftwareId || String(sw[0]?.id ?? '');
       setSelectedSoftwareId(firstSoftware);
       if (firstSoftware) {
-        const versionsResult = await api<Row[]>(`/software-admin/software/${firstSoftware}/versions`, {}, token);
+        const versionsResult = await softwareAdminApi.listVersions(token, firstSoftware);
         setVersions(versionsResult);
         const firstVersion = selectedVersionId || String(versionsResult[0]?.id ?? '');
         setSelectedVersionId(firstVersion);
-        const docs = await api<Row[]>(`/software-admin/knowledge?software_id=${firstSoftware}${firstVersion ? `&version_id=${firstVersion}` : ''}`, {}, token);
+        const docs = await softwareAdminApi.listKnowledge(token, firstSoftware, firstVersion);
         setDocuments(docs);
-        const req = await api<Row[]>(`/software-admin/requests?software_id=${firstSoftware}&limit=20`, {}, token);
+        const req = await softwareAdminApi.listRequests(token, firstSoftware, 20);
         setRequests(req);
         if (firstVersion) {
-          const gold = await api<Row[]>(`/software-admin/gold-tests?software_id=${firstSoftware}&version_id=${firstVersion}`, {}, token);
+          const gold = await softwareAdminApi.listGoldTests(token, firstSoftware, firstVersion);
           setGoldTests(gold);
         }
       }
-      const keys = await api<Row[]>('/software-admin/api-keys', {}, token);
+      const keys = await softwareAdminApi.listApiKeys(token);
       setApiKeys(keys);
       setMessage('داشبورد مدیر نرم‌افزار به‌روزرسانی شد.');
     } catch (error) {
@@ -62,71 +60,50 @@ export function SoftwareAdminDashboard({ token }: { token?: string }) {
 
   async function createSoftware() {
     if (!token) return;
-    await api('/software-admin/software', {
-      method: 'POST',
-      body: JSON.stringify({ ...softwareForm, product_type: 'standalone', access_policy: { max_rows: 20, timeout_seconds: 10 } })
-    }, token);
+    await softwareAdminApi.createSoftware(token, { ...softwareForm, product_type: 'standalone', access_policy: { max_rows: 20, timeout_seconds: 10 } });
     await load();
   }
 
   async function createVersion() {
     if (!token || !selectedSoftwareId) return;
-    await api('/software-admin/versions', { method: 'POST', body: JSON.stringify({ ...versionForm, software_id: selectedSoftwareId, database_dialect: 'T-SQL', status: 'draft' }) }, token);
+    await softwareAdminApi.createVersion(token, { ...versionForm, software_id: selectedSoftwareId, database_dialect: 'T-SQL', status: 'draft' });
     await load();
   }
 
   async function uploadKnowledge() {
     if (!token || !selectedSoftwareId || !selectedVersionId) return;
-    await api('/software-admin/knowledge', {
-      method: 'POST',
-      body: JSON.stringify({ ...knowledgeForm, software_id: selectedSoftwareId, version_id: selectedVersionId, tags: ['pilot'], sensitivity_level: 'internal' })
-    }, token);
+    await softwareAdminApi.uploadKnowledge(token, { ...knowledgeForm, software_id: selectedSoftwareId, version_id: selectedVersionId, tags: ['pilot'], sensitivity_level: 'internal' });
     await load();
   }
 
   async function standardizeKnowledge() {
     if (!token || !selectedSoftwareId || !selectedVersionId || documents.length === 0) return;
-    await api('/software-admin/knowledge/standardize', {
-      method: 'POST',
-      body: JSON.stringify({ document_ids: documents.map((doc) => doc.id), software_id: selectedSoftwareId, version_id: selectedVersionId, standardization_type: 'full', use_llm: false })
-    }, token);
+    await softwareAdminApi.standardizeKnowledge(token, { document_ids: documents.map((doc) => doc.id), software_id: selectedSoftwareId, version_id: selectedVersionId, standardization_type: 'full', use_llm: false });
     await load();
   }
 
   async function publishSnapshot() {
     if (!token || !selectedSoftwareId || !selectedVersionId || documents.length === 0) return;
-    await api('/software-admin/snapshots/publish', {
-      method: 'POST',
-      body: JSON.stringify({ software_id: selectedSoftwareId, version_id: selectedVersionId, document_ids: documents.map((doc) => doc.id), name: `snapshot-${Date.now()}`, release_note: 'انتشار پایلوت', approvers: ['software-admin'], mandatory_test_result: { passed: true } })
-    }, token);
+    await softwareAdminApi.publishSnapshot(token, { software_id: selectedSoftwareId, version_id: selectedVersionId, document_ids: documents.map((doc) => doc.id), name: `snapshot-${Date.now()}`, release_note: 'انتشار پایلوت', approvers: ['software-admin'], mandatory_test_result: { passed: true } });
     await load();
   }
 
   async function createUser() {
     if (!token) return;
-    await api('/software-admin/users', {
-      method: 'POST',
-      body: JSON.stringify({ ...userForm, scopes: userForm.scopes.split(',').map((item) => item.trim()), roles: ['report_user'], region: ['1', '2'], temporary_password: 'UserChangeMe!12345' })
-    }, token);
+    await softwareAdminApi.createUser(token, { ...userForm, scopes: userForm.scopes.split(',').map((item) => item.trim()), roles: ['report_user'], region: ['1', '2'], temporary_password: 'UserChangeMe!12345' });
     setMessage('کاربر نرم‌افزار ایجاد شد.');
   }
 
   async function issueApiKey() {
     if (!token || !selectedSoftwareId) return;
-    const issued = await api<{ secret: string; prefix: string }>('/software-admin/api-keys', {
-      method: 'POST',
-      body: JSON.stringify({ name: 'کلید پایلوت', software_id: selectedSoftwareId, version_id: selectedVersionId || null, scopes: ['report.request', 'commission100.read'], environment: 'development', rate_limit: { requests_per_minute: 60 } })
-    }, token);
+    const issued = await softwareAdminApi.issueApiKey(token, { name: 'کلید پایلوت', software_id: selectedSoftwareId, version_id: selectedVersionId || null, scopes: ['report.request', 'commission100.read'], environment: 'development', rate_limit: { requests_per_minute: 60 } });
     setMessage(`Secret فقط یک‌بار نمایش داده می‌شود: ${issued.secret} | Prefix: ${issued.prefix}`);
     await load();
   }
 
   async function createGoldTest() {
     if (!token || !selectedSoftwareId || !selectedVersionId) return;
-    await api('/software-admin/gold-tests', {
-      method: 'POST',
-      body: JSON.stringify({ question: goldQuestion, software_id: selectedSoftwareId, version_id: selectedVersionId, expected_tables: ['Commission100Cases'], expected_intent: 'commission100_cases', test_user_context: { organization: 'municipality-01', region: ['1'], roles: ['report-user'], scopes: ['commission100.read'] } })
-    }, token);
+    await softwareAdminApi.createGoldTest(token, { question: goldQuestion, software_id: selectedSoftwareId, version_id: selectedVersionId, expected_tables: ['Commission100Cases'], expected_intent: 'commission100_cases', test_user_context: { organization: 'municipality-01', region: ['1'], roles: ['report-user'], scopes: ['commission100.read'] } });
     await load();
   }
 

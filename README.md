@@ -23,6 +23,24 @@ docs/RFP_MAPPING.md      نگاشت RFP به اجزای پیاده‌سازی
 docker-compose.yml       PostgreSQL، Redis، Backend، Frontend و Keycloak اختیاری
 ```
 
+
+## معماری تمیزتر (Clean Architecture)
+
+پس از بازبینی، ساختار پروژه از حالت صرفاً Router/Page محور به سمت معماری لایه‌ای اصلاح شد:
+
+- Backend:
+  - `backend/app/api`: فقط Adapterهای HTTP و Dependencyها
+  - `backend/app/application`: Use Case، Port، Unit of Work Protocol و Application Error
+  - `backend/app/infrastructure`: Repositoryهای SQLAlchemy و Unit of Work واقعی
+  - `backend/app/domain`: مفاهیم دامنه مستقل از Framework
+- Frontend:
+  - `frontend/src/app`: Composition Root
+  - `frontend/src/features`: API و مدل هر قابلیت کسب‌وکاری
+  - `frontend/src/shared`: HTTP Client، Config و UI مشترک
+  - `frontend/src/pages`: ترکیب صفحه‌ها، نه محل نگهداری منطق API
+
+گزارش دقیق بخش‌های نیازمند حرفه‌ای‌سازی در `docs/ARCHITECTURE_REVIEW.md` آمده است.
+
 ## اجرای سریع با Docker
 
 ```bash

@@ -1,12 +1,10 @@
 import { useState } from 'react';
-import { Card, MetricCard } from '../../components/Card';
-import { DataTable } from '../../components/DataTable';
-import { api, uuid } from '../../lib/api';
+import { Card, MetricCard } from '../../shared/ui/Card';
+import { DataTable } from '../../shared/ui/DataTable';
+import { clientUuid } from '../../shared/api/httpClient';
+import { reportApi } from '../../features/reporting/api/reportApi';
+import type { ReportResponse } from '../../features/reporting/model/types';
 
-type ReportResponse =
-  | { status: 'success'; sql: string; parameters: Record<string, unknown>; display: { type: string; title: string; columns: { name: string; title: string }[]; formats: Record<string, unknown> }; confidence: { score: number; level: string }; audit_id: string; policy: Record<string, unknown> }
-  | { status: 'needs_clarification'; audit_id: string; question: string; options: string[] }
-  | { status: 'rejected'; sql: null; audit_id: string; reason_code: string; message: string };
 
 type Row = Record<string, unknown>;
 
@@ -21,7 +19,7 @@ export function OnPremReportConsole() {
 
   async function submitReport(extra = '') {
     const payload = {
-      request_id: uuid(),
+      request_id: clientUuid(),
       software_id: 'behsaz',
       software_version: '12.4.0',
       user_id: 'user-1025',
@@ -36,7 +34,7 @@ export function OnPremReportConsole() {
       timezone: 'Asia/Tehran'
     };
     setMessage('در حال تولید SQL پارامتری...');
-    const result = await api<ReportResponse>('/reports/generate', { method: 'POST', body: JSON.stringify(payload) });
+    const result = await reportApi.generate(payload);
     setResponse(result);
     setLocalRows([]);
     setMessage(result.status === 'success' ? 'SQL تولید شد. اجرای واقعی باید داخل شبکه مشتری و توسط Connector انجام شود.' : 'نیازمند اقدام کاربر.');
@@ -49,13 +47,13 @@ export function OnPremReportConsole() {
       { CaseNo: '100-1405-0002', RegionCode: '2', CreatedAt: '1405/05/09', Status: 'صدور رأی' }
     ].slice(0, limit);
     setLocalRows(rows);
-    await api('/reports/execution-result', { method: 'POST', body: JSON.stringify({ audit_id: response.audit_id, execution_time_ms: 32, row_count: rows.length, display_type: outputType }) });
+    await reportApi.sendExecutionMetadata({ audit_id: response.audit_id, execution_time_ms: 32, row_count: rows.length, display_type: outputType });
     setMessage('نتیجه محلی نمایش داده شد؛ داده خام به سرویس مرکزی ارسال نشد.');
   }
 
   async function sendFeedback(verdict: 'correct' | 'incorrect' | 'partially_correct') {
     if (!response) return;
-    await api('/reports/feedback', { method: 'POST', body: JSON.stringify({ audit_id: response.audit_id, verdict, rating: verdict === 'correct' ? 5 : 2, description: 'بازخورد کاربر داخل بهساز', problem_type: verdict === 'correct' ? null : 'wrong_filter', manager_review_requested: verdict !== 'correct' }) });
+    await reportApi.sendFeedback({ audit_id: response.audit_id, verdict, rating: verdict === 'correct' ? 5 : 2, description: 'بازخورد کاربر داخل بهساز', problem_type: verdict === 'correct' ? null : 'wrong_filter', manager_review_requested: verdict !== 'correct' });
     setMessage('Feedback ID ثبت شد و در صورت نیاز به صف بازبینی مدیر ارسال گردید.');
   }
 
