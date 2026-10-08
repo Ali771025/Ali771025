@@ -115,6 +115,22 @@ pending ──(provider accepts)──► in_progress ──(provider delivers)�
         └─ full refund to buyer wallet                                       └─ 90% to provider wallet
 ```
 
+## Architecture & planning docs
+
+The project follows a documented pipeline (PRD → Architecture → ERD → API Contract → Phasing →
+Codex prompts → implementation):
+
+| Doc | Content |
+|---|---|
+| [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) | Technical Architecture & Development Blueprint v1.0 — every decision tagged `[PRD]` vs `[TECH]` |
+| [`docs/ERD.md`](./docs/ERD.md) | Full data model: 9 clusters, ~45 entities (identity → reward ledger) |
+| [`docs/API_CONTRACT.md`](./docs/API_CONTRACT.md) | `/api/v1` REST contract + normative flow sequences |
+| [`docs/PHASING.md`](./docs/PHASING.md) | Phases 0–5 with exit criteria + mapping of the current prototype to phases |
+| [`docs/CODEX_PROMPTS.md`](./docs/CODEX_PROMPTS.md) | Ready-to-run implementation prompts per module |
+
+> The current `backend/` + `frontend/` is the working **marketplace-style prototype** (Phase 0/1
+> scaffold). It will be evolved toward the Personal-QORA architecture in the docs.
+
 ## Production notes
 
 - **Database:** set `DATABASE_URL=postgresql+psycopg://…` (SQLAlchemy) — models are portable.
