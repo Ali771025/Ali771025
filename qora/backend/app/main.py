@@ -1,22 +1,29 @@
-"""QORA API — FastAPI application entrypoint."""
-from fastapi import Depends, FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import func, select
-from sqlalchemy.orm import Session
+"""QORA Platform — Modular Monolith entrypoint [TECH] (ARCHITECTURE §2).
 
-from app.api import admin, assistant, auth, orders, services, wallet
-from app.api.deps import get_optional_user
+All domain routers live under /api/v1. The error envelope is canonical (API_CONTRACT §0).
+"""
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+
 from app.core.config import settings
-from app.db.base import Base, engine, get_db
-from app.db.models import Category, Order, Review, Service, User
-from app.schemas.schemas import StatsOut
+from app.core.db import Base, engine
+from app.modules import ROUTERS
+from app.shared.errors import install_error_handlers
+from app.shared.logging import get_trace_id, log, set_trace_id
+
+# Import every module's models so create_all sees them (via modules package).
+import app.modules  # noqa: F401
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title=settings.APP_NAME,
     version="1.0.0",
-    description="Backend API for the QORA consumer AI service network — services, orders, wallet, reviews, admin.",
+    description=(
+        "QORA — Consumer AI Platform + Personal AI + AI Service Network. "
+        "Phase 0/1: identity, profiles, personal QORA, permissions, intent engine, "
+        "service registry, runtime, conversations, outcomes, rewards."
+    ),
     docs_url="/api/docs",
     openapi_url="/api/openapi.json",
 )
@@ -30,32 +37,32 @@ app.add_middleware(
 )
 
 
+@app.middleware("http")
+async def trace_middleware(request: Request, call_next):
+    tid = request.headers.get("x-trace-id") or ("trc_" + __import__("uuid").uuid4().hex[:16])
+    set_trace_id(tid)
+    response = await call_next(request)
+    response.headers["x-trace-id"] = get_trace_id()
+    return response
+
+
+install_error_handlers(app)
+
+for r in ROUTERS:
+    app.include_router(r, prefix="/api/v1")
+
+
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "app": settings.APP_NAME}
+    return {"status": "ok", "app": settings.APP_NAME, "phase": "0+1", "trace_id": get_trace_id()}
 
 
-@app.get("/api/stats", response_model=StatsOut, tags=["stats"])
-def public_stats(db: Session = Depends(get_db), _user=Depends(get_optional_user)):
-    gmv = (
-        db.scalar(select(func.coalesce(func.sum(Order.price_cents), 0)).where(Order.status.in_(["delivered", "completed"])))
-        or 0
-    )
-    return StatsOut(
-        services=db.scalar(select(func.count(Service.id))) or 0,
-        providers=db.scalar(select(func.count(User.id)).where(User.role == "provider")) or 0,
-        consumers=db.scalar(select(func.count(User.id)).where(User.role == "consumer")) or 0,
-        orders=db.scalar(select(func.count(Order.id))) or 0,
-        completed_orders=db.scalar(select(func.count(Order.id)).where(Order.status == "completed")) or 0,
-        gmv_cents=int(gmv),
-        categories=db.scalar(select(func.count(Category.id))) or 0,
-        avg_rating=round(float(db.scalar(select(func.avg(Review.rating))) or 0), 2),
-    )
+@app.get("/api/v1/_modules")
+def modules():
+    log("platform").info("modules listing")
+    from app.modules import ROUTERS as _r
 
-
-app.include_router(auth.router, prefix="/api")
-app.include_router(services.router, prefix="/api")
-app.include_router(orders.router, prefix="/api")
-app.include_router(wallet.router, prefix="/api")
-app.include_router(assistant.router, prefix="/api")
-app.include_router(admin.router, prefix="/api")
+    return {
+        "modules": sorted({getattr(r, "module_name", None) or r.prefix.strip("/").split("/")[0] for r in _r} - {None, ""}),
+        "boundary_rule": "modules communicate via service interfaces only",
+    }

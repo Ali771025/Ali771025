@@ -1,4 +1,9 @@
-"""Seed the QORA database with demo users, categories, services, orders and reviews.
+"""Seed the QORA platform with the Phase-1 demo dataset.
+
+Demo story (PHASING.md Phase-1 exit criteria):
+Emma (consumer) says "Next week I have an English interview for a Product Manager position" →
+structured intent → Interview Coach service (she follows it) → career-context permission →
+mock interview runs → outcome SUCCESS → goal memory saved → journey started.
 
 Run:  python seed.py
 """
@@ -8,88 +13,148 @@ sys.path.insert(0, ".")
 
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import select
-
+from app.core.db import Base, SessionLocal, engine
 from app.core.security import hash_password
-from app.db.base import Base, SessionLocal, engine
-from app.db.models import Category, Order, Review, Service, Transaction, User, Wallet
+from app.modules.identity.models import Device, SessionRecord, User
+from app.modules.intent.models import Capability, Intent, IntentCapability
+from app.modules.outcome.models import OutcomeRecord
+from app.modules.permission.models import ContextGrant
+from app.modules.personal_qora.models import Goal, Journey, Memory
+from app.modules.profile.models import CreatorProfile, PrivateProfile
+from app.modules.reputation.models import TrustScore
+from app.modules.reward.models import RewardAccount
+from app.modules.runtime.models import ServiceSession
+from app.modules.service.models import (
+    AiService,
+    FollowedService,
+    ServiceCapabilityMap,
+    ServiceIntentMap,
+    ServiceVersion,
+)
 
-AVATAR = {
-    "admin": "#8b5cf6",
-    "sarah": "#0ea5e9",
-    "marcus": "#f59e0b",
-    "lena": "#10b981",
-    "omar": "#ef4444",
-    "emma": "#ec4899",
+INTENTS = [
+    ("job_interview_preparation", "Job Interview Preparation", "Prepare for interviews: practice, feedback, role-specific coaching"),
+    ("english_speaking_practice", "English Speaking Practice", "Practice spoken English with feedback"),
+    ("trip_planning", "Trip Planning", "Build itineraries and travel plans"),
+    ("startup_idea_validation", "Startup Idea Validation", "Stress-test a business idea before building"),
+    ("writing_editing", "Writing & Editing", "Improve texts, proofreading, tone"),
+    ("learning_tutoring", "Learning & Tutoring", "Explanations, study plans, practice questions"),
+]
+
+CAPABILITIES = [
+    ("interview_coaching", "Interview Coaching"),
+    ("feedback", "Feedback"),
+    ("role_specific_prep", "Role-specific Prep"),
+    ("english_practice", "English Practice"),
+    ("conversation", "Conversation"),
+    ("itinerary_planning", "Itinerary Planning"),
+    ("recommendation", "Recommendation"),
+    ("idea_critique", "Idea Critique"),
+    ("market_analysis", "Market Analysis"),
+    ("text_improvement", "Text Improvement"),
+    ("proofreading", "Proofreading"),
+    ("explanation", "Explanation"),
+    ("practice_questions", "Practice Questions"),
+]
+
+INTENT_CAPS = {
+    "job_interview_preparation": ["interview_coaching", "feedback", "role_specific_prep"],
+    "english_speaking_practice": ["english_practice", "conversation", "feedback"],
+    "trip_planning": ["itinerary_planning", "recommendation"],
+    "startup_idea_validation": ["idea_critique", "market_analysis"],
+    "writing_editing": ["text_improvement", "proofreading"],
+    "learning_tutoring": ["explanation", "practice_questions"],
 }
 
-CATEGORIES = [
-    ("Chatbots & Assistants", "chatbots", "message-square", "Conversational AI, support bots, copilots"),
-    ("Image & Vision", "image-vision", "image", "Generation, editing, detection, OCR"),
-    ("Data & Analytics", "data-analytics", "bar-chart-3", "Prediction, dashboards, data pipelines"),
-    ("Voice & Audio", "voice-audio", "mic", "TTS, transcription, voice cloning"),
-    ("Automation & Agents", "automation-agents", "workflow", "Agentic workflows, RPA, integrations"),
-    ("NLP & Content", "nlp-content", "file-text", "Writing, translation, summarization"),
-    ("ML Engineering", "ml-engineering", "cpu", "Training, fine-tuning, MLOps, deployment"),
-    ("Recommendation & Personalization", "recommendation", "target", "Recommenders, ranking, user modeling"),
-]
-
-PROVIDERS = [
-    ("sarah@qora.ai", "Sarah Chen", "sarah", "Senior AI Engineer · NLP & RAG systems",
-     "10+ years building production NLP systems. Ex-search infrastructure. I specialize in RAG pipelines, "
-     "fine-tuning and evaluation."),
-    ("marcus@qora.ai", "Marcus Webb", "marcus", "ML Solutions Architect · Vision & Automation",
-     "I help companies ship computer-vision and automation systems that actually survive production."),
-    ("lena@qora.ai", "Lena Novak", "lena", "Data Scientist · Predictive models & analytics",
-     "PhD in statistics. I turn messy business data into forecasts and decisions."),
-]
-
-CONSUMERS = [
-    ("omar@qora.ai", "Omar Farouk", "omar", "Product Manager @ retail startup"),
-    ("emma@qora.ai", "Emma Larsson", "emma", "Founder @ D2C brand"),
-]
-
 SERVICES = [
-    # (title, desc, price_usd, days, category_slug, provider_email, tags)
-    ("Custom GPT Support Chatbot", "Production-ready customer-support chatbot trained on your docs and help center. "
-     "Includes multilingual answers, human hand-off, analytics dashboard and a 2-week tuning window. Deployed to "
-     "your website with a single script tag.", 890, 10, "chatbots", "sarah@qora.ai", "chatbot,rag,support,llm"),
-    ("RAG Knowledge Base Setup", "Turn your internal documents into a question-answering system: chunking strategy, "
-     "embeddings, hybrid search, citation answers and an evaluation harness. Delivered as a repo plus walkthrough.",
-     1250, 14, "chatbots", "sarah@qora.ai", "rag,embeddings,knowledge-base,llm"),
-    ("AI Image Generation Pipeline", "Branded image-generation pipeline (SDXL / Flux) with style fine-tuning on your "
-     "brand assets, moderation filters and a simple web app for your team.", 1490, 12, "image-vision", "marcus@qora.ai",
-     "image,diffusion,brand,generation"),
-    ("Object Detection for Quality Control", "Custom YOLO-based defect detection for production lines. Includes data "
-     "annotation guide, training, ONNX export and edge deployment instructions.", 2200, 21, "image-vision",
-     "marcus@qora.ai", "vision,detection,yolo,edge"),
-    ("Document OCR & Extraction", "Extract structured fields from invoices, IDs and contracts. Layout-aware OCR plus "
-     "LLM validation with confidence scores. REST API + web demo included.", 980, 9, "image-vision", "marcus@qora.ai",
-     "ocr,extraction,documents,api"),
-    ("Sales Forecasting Model", "Demand / sales forecasting with gradient boosting + time-series features. Backtests, "
-     "confidence intervals and an executive dashboard your team can actually read.", 1350, 15, "data-analytics",
-     "lena@qora.ai", "forecasting,analytics,python,tableau"),
-    ("Customer Churn Prediction", "Churn scoring model with interpretable risk factors, cohort analysis and a "
-     "retention playbook wired to your CRM.", 1100, 12, "data-analytics", "lena@qora.ai", "churn,prediction,crm"),
-    ("Realistic Voice Cloning & TTS", "Clone a voice from 30 minutes of audio for narration, IVR and product voice. "
-     "Emotion control, 12 languages, commercial license.", 750, 7, "voice-audio", "sarah@qora.ai", "tts,voice,clone,audio"),
-    ("Meeting Transcription & Summaries", "Speech-to-text pipeline with speaker diarization, searchable transcripts "
-     "and automatic action-item summaries pushed to Slack or email.", 490, 5, "voice-audio", "lena@qora.ai",
-     "transcription,asr,summarization,meetings"),
-    ("AI Automation Workflows", "Agentic automations that connect your tools (CRM, email, sheets, Slack). Includes "
-     "error handling, logging and a month of monitoring.", 640, 8, "automation-agents", "marcus@qora.ai",
-     "agents,automation,n8n,workflow"),
-    ("LLM Content Engine", "SEO-aware content system: briefs, drafts and brand-tone rewriting with a review queue. "
-     "Built on your style guide — no generic AI filler.", 560, 7, "nlp-content", "sarah@qora.ai",
-     "content,seo,writing,llm"),
-    ("Model Fine-Tuning & Deployment", "Fine-tune and ship your own LLM or embedding model: dataset curation, LoRA / "
-     "full fine-tune, eval suite and cost-optimized serving (vLLM).", 2500, 25, "ml-engineering", "sarah@qora.ai",
-     "finetuning,vllm,mlops,training"),
-    ("Recommendation Engine", "Personalized recommendations (collaborative + content-based) with A/B-ready ranking "
-     "API. Proven lift playbook for e-commerce and content platforms.", 1800, 18, "recommendation", "lena@qora.ai",
-     "recommendation,ranking,personalization"),
-    ("Data Cleaning & Feature Store", "Rescue messy data: dedupe, normalize, enrich and set up a lightweight feature "
-     "store your models can rely on.", 420, 6, "data-analytics", "lena@qora.ai", "data,features,etl,cleaning"),
+    {
+        "name": "Interview Coach",
+        "slug": "interview-coach",
+        "summary": "Role-specific mock interviews with structured STAR feedback",
+        "description": "A personal interview coach that runs realistic mock interviews tailored to your target role, "
+        "scores your answers (structure, relevance, clarity) and gives an improvement checklist. "
+        "It uses your career context only when you allow it.",
+        "purpose": "Help candidates walk into interviews prepared and confident",
+        "audience": "Job seekers preparing for English interviews",
+        "category": "career",
+        "risk_level": "MEDIUM",
+        "creator_name": "Sarah Chen",
+        "creator_headline": "Senior career coach · ex-tech recruiter",
+        "intents": ["job_interview_preparation", "english_speaking_practice"],
+        "caps": ["interview_coaching", "feedback", "role_specific_prep", "english_practice"],
+        "context_requirements": ["career"],
+        "outcome_definition": {
+            "text": "A completed practice round with role-specific feedback and an improvement checklist",
+            "signals": ["relevant_interaction", "deliverable_generated", "plan_produced"],
+        },
+        "system": "You are Interview Coach. Run a mock interview one question at a time, then give STAR-based feedback. "
+        "Always end with a short improvement checklist. Stay strictly inside interview preparation.",
+        "boundaries": "No medical, legal or financial advice. No guaranteeing job offers.",
+    },
+    {
+        "name": "Trip Planner",
+        "slug": "trip-planner",
+        "summary": "Usable itineraries covering dates, budget and priorities",
+        "description": "Turns your dates, budget and priorities into a day-by-day itinerary you can actually follow.",
+        "purpose": "Reduce trip-planning effort to minutes",
+        "audience": "Travelers who want a concrete plan",
+        "category": "travel",
+        "risk_level": "LOW",
+        "creator_name": "Marcus Webb",
+        "creator_headline": "Travel designer · 40+ countries",
+        "intents": ["trip_planning"],
+        "caps": ["itinerary_planning", "recommendation"],
+        "context_requirements": ["travel"],
+        "outcome_definition": {
+            "text": "A usable itinerary covering dates, budget and priorities [PRD example]",
+            "signals": ["relevant_interaction", "deliverable_generated"],
+        },
+        "system": "You are Trip Planner. Produce a day-by-day itinerary covering dates, budget and priorities.",
+        "boundaries": "No visa/legal advice. Prices are estimates.",
+    },
+    {
+        "name": "Startup Idea Validator",
+        "slug": "startup-idea-validator",
+        "summary": "Stress-test your idea with a validation checklist",
+        "description": "Guides you through problem, solution test and market comparison, then generates a "
+        "validation checklist with pass/fail criteria.",
+        "purpose": "Help founders validate before they build",
+        "audience": "Early-stage founders",
+        "category": "business",
+        "risk_level": "LOW",
+        "creator_name": "Lena Novak",
+        "creator_headline": "Product strategist · 3x founder",
+        "intents": ["startup_idea_validation"],
+        "caps": ["idea_critique", "market_analysis"],
+        "context_requirements": [],
+        "outcome_definition": {
+            "text": "A validation checklist with pass/fail criteria for the next 2 weeks",
+            "signals": ["relevant_interaction", "deliverable_generated", "plan_produced"],
+        },
+        "system": "You are Startup Idea Validator. Challenge assumptions politely; end with a checklist.",
+        "boundaries": "No investment advice.",
+    },
+    {
+        "name": "Writing Editor",
+        "slug": "writing-editor",
+        "summary": "Clearer, sharper text with rationale for every change",
+        "description": "Edits your drafts for grammar, flow and tone, with a rationale for the biggest changes.",
+        "purpose": "Make everyday writing professional",
+        "audience": "Anyone writing in English",
+        "category": "writing",
+        "risk_level": "LOW",
+        "creator_name": "Sarah Chen",
+        "creator_headline": "Senior career coach · ex-tech recruiter",
+        "intents": ["writing_editing"],
+        "caps": ["text_improvement", "proofreading"],
+        "context_requirements": [],
+        "outcome_definition": {
+            "text": "A revised text plus a change rationale",
+            "signals": ["relevant_interaction", "deliverable_generated"],
+        },
+        "system": "You are Writing Editor. Return revised text + rationale. Preserve the author's voice.",
+        "boundaries": "No academic dishonesty (no writing exams for users).",
+    },
 ]
 
 
@@ -97,150 +162,107 @@ def seed():
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
-    now = datetime.now(timezone.utc)
-
     try:
-        cats = {}
-        for name, slug, icon, desc in CATEGORIES:
-            c = Category(name=name, slug=slug, icon=icon, description=desc)
+        # ---- users ----
+        emma = User(email="emma@qora.ai", password_hash=hash_password("consumer123"), roles="consumer")
+        omar = User(email="omar@qora.ai", password_hash=hash_password("consumer123"), roles="consumer")
+        sarah = User(email="sarah@qora.ai", password_hash=hash_password("provider123"), roles="consumer,creator")
+        marcus = User(email="marcus@qora.ai", password_hash=hash_password("provider123"), roles="consumer,creator")
+        lena = User(email="lena@qora.ai", password_hash=hash_password("provider123"), roles="consumer,creator")
+        admin = User(email="admin@qora.ai", password_hash=hash_password("admin123"), roles="consumer,creator,admin")
+        db.add_all([emma, omar, sarah, marcus, lena, admin])
+        db.flush()
+
+        priv = {
+            emma.id: "Emma Larsson", omar.id: "Omar Farouk", sarah.id: "Sarah Chen",
+            marcus.id: "Marcus Webb", lena.id: "Lena Novak", admin.id: "Qora Admin",
+        }
+        for uid, name in priv.items():
+            db.add(PrivateProfile(user_id=uid, display_name=name))
+
+        creators = {}
+        for u, name, headline, tags, trust in [
+            (sarah, "Sarah Chen", "Senior career coach · ex-tech recruiter", ["career", "coaching", "writing"], 0.82),
+            (marcus, "Marcus Webb", "Travel designer · 40+ countries", ["travel", "planning"], 0.74),
+            (lena, "Lena Novak", "Product strategist · 3x founder", ["startup", "product"], 0.78),
+        ]:
+            cp = CreatorProfile(user_id=u.id, display_name=name, headline=headline, expertise_tags=tags,
+                                bio="Verified specialist on QORA.", verification_status="verified", trust_score=trust)
+            db.add(cp)
+            creators[name] = cp
+        db.flush()
+
+        # ---- intents & capabilities ----
+        intents = {}
+        for slug, name, desc in INTENTS:
+            i = Intent(slug=slug, name=name, description=desc)
+            db.add(i)
+            intents[slug] = i
+        caps = {}
+        for slug, name in CAPABILITIES:
+            c = Capability(slug=slug, name=name)
             db.add(c)
-            cats[slug] = c
+            caps[slug] = c
         db.flush()
+        for islug, cslugs in INTENT_CAPS.items():
+            for cs in cslugs:
+                db.add(IntentCapability(intent_id=intents[islug].id, capability_id=caps[cs].id))
 
-        admin = User(
-            email="admin@qora.ai",
-            hashed_password=hash_password("admin123"),
-            full_name="Qora Admin",
-            role="admin",
-            headline="Platform administrator",
-            avatar_color=AVATAR["admin"],
-        )
-        db.add(admin)
-
-        providers = {}
-        for email, name, key, headline, bio in PROVIDERS:
-            u = User(
-                email=email,
-                hashed_password=hash_password("provider123"),
-                full_name=name,
-                role="provider",
-                headline=headline,
-                bio=bio,
-                avatar_color=AVATAR[key],
+        # ---- services + versions ----
+        services = {}
+        for s in SERVICES:
+            svc = AiService(
+                creator_id=creators[s["creator_name"]].id,
+                slug=s["slug"], name=s["name"], summary=s["summary"], description=s["description"],
+                purpose=s["purpose"], audience=s["audience"], category=s["category"],
+                risk_level=s["risk_level"], visibility="public", lifecycle_status="published",
+                verification_status="verified",
+                published_at=datetime.now(timezone.utc) - timedelta(days=12),
             )
-            db.add(u)
-            providers[email] = u
-
-        consumers = {}
-        for email, name, key, headline in CONSUMERS:
-            u = User(
-                email=email,
-                hashed_password=hash_password("consumer123"),
-                full_name=name,
-                role="consumer",
-                headline=headline,
-                avatar_color=AVATAR[key],
-            )
-            db.add(u)
-            consumers[email] = u
-        db.flush()
-
-        wallets = {}
-        for u in [admin, *providers.values(), *consumers.values()]:
-            w = Wallet(user_id=u.id, balance_cents=0)
-            db.add(w)
-            wallets[u.id] = w
-        db.flush()
-
-        # Fund demo wallets
-        for u, amount in [(consumers["omar@qora.ai"], 800000), (consumers["emma@qora.ai"], 700000),
-                          (providers["sarah@qora.ai"], 250000), (providers["marcus@qora.ai"], 180000),
-                          (providers["lena@qora.ai"], 150000)]:
-            wallets[u.id].balance_cents = amount
-            db.add(Transaction(wallet_id=wallets[u.id].id, kind="topup", amount_cents=amount,
-                               description="Wallet top-up (test payment)"))
-
-        services = []
-        for title, desc, price, days, cat_slug, p_email, tags in SERVICES:
-            slug = "".join(ch if ch.isalnum() else "-" for ch in title.lower()).strip("-")
-            s = Service(
-                title=title,
-                slug=slug,
-                description=desc,
-                price_cents=price * 100,
-                delivery_days=days,
-                tags=tags,
-                category_id=cats[cat_slug].id,
-                provider_id=providers[p_email].id,
-                created_at=now - timedelta(days=len(services) * 2),
-            )
-            db.add(s)
-            services.append(s)
-        db.flush()
-
-        # Reviews first (ratings appear on the landing page)
-        review_data = [
-            (0, "omar@qora.ai", 5, "Sarah delivered an exceptional chatbot — our ticket volume dropped 35% in the first month."),
-            (1, "emma@qora.ai", 5, "The RAG setup is rock solid. Answers cite sources, which our legal team loves."),
-            (2, "emma@qora.ai", 4, "Great pipeline and style tuning. Delivery took the full window but worth it."),
-            (5, "omar@qora.ai", 5, "Forecasts were within 4% of actuals last quarter. The dashboard is beautifully clear."),
-            (8, "emma@qora.ai", 4, "Transcription quality is excellent, even with heavy accents."),
-            (9, "omar@qora.ai", 5, "Marcus automated 6 hours of daily ops work. Paid for itself in a week."),
-        ]
-        rating_map: dict[int, list[int]] = {}
-        for idx, email, rating, comment in review_data:
-            svc = services[idx]
-            buyer = consumers[email]
-            order = Order(
-                service_id=svc.id,
-                buyer_id=buyer.id,
-                provider_id=svc.provider_id,
-                requirements="Demo order — seeded review.",
-                price_cents=svc.price_cents,
-                status="completed",
-                created_at=now - timedelta(days=20 + idx),
-                delivered_at=now - timedelta(days=15 + idx),
-            )
-            db.add(order)
+            db.add(svc)
             db.flush()
-            db.add(Review(order_id=order.id, service_id=svc.id, author_id=buyer.id,
-                          rating=rating, comment=comment,
-                          created_at=now - timedelta(days=14 + idx)))
-            svc.orders_count += 1
-            rating_map.setdefault(svc.id, []).append(rating)
-            # buyer purchase (ledger consistency)
-            bw = wallets[buyer.id]
-            bw.balance_cents -= svc.price_cents
-            db.add(Transaction(wallet_id=bw.id, kind="purchase", amount_cents=-svc.price_cents,
-                               description=f"Order — {svc.title}"))
-            # provider earning (90%)
-            earnings = svc.price_cents * 90 // 100
-            pw = wallets[svc.provider_id]
-            pw.balance_cents += earnings
-            db.add(Transaction(wallet_id=pw.id, kind="earning", amount_cents=earnings,
-                               description=f"Earnings — order for “{svc.title}”"))
+            v = ServiceVersion(
+                service_id=svc.id, version_no=1,
+                purpose=s["purpose"], method="guided conversation + structured feedback",
+                behavior="friendly, concrete, stays inside boundaries",
+                system_instructions=s["system"], boundaries=s["boundaries"],
+                outcome_definition=s["outcome_definition"],
+                model_requirements={"reasoning": "medium", "structured_output": True, "tool_calling": False},
+                context_requirements=s["context_requirements"],
+                examples=[{"input": "Help me prep for a PM interview", "output": "starts a mock interview"}],
+            )
+            db.add(v)
+            db.flush()
+            svc.current_version_id = v.id
+            for isl in s["intents"]:
+                db.add(ServiceIntentMap(service_id=svc.id, intent_id=intents[isl].id, relevance=0.9))
+            for cs in s["caps"]:
+                db.add(ServiceCapabilityMap(service_id=svc.id, capability_id=caps[cs].id))
+            db.add(TrustScore(subject_type="service", subject_id=svc.id, overall=creators[s["creator_name"]].trust_score,
+                              components={"reliability": 0.8, "quality": 0.8, "safety": 0.9, "freshness": 0.9}))
+            services[s["slug"]] = svc
 
-        for sid, ratings in rating_map.items():
-            svc = db.get(Service, sid)
-            svc.rating_avg = round(sum(ratings) / len(ratings), 2)
-            svc.rating_count = len(ratings)
+        # ---- Emma's personal QORA ----
+        db.add(Memory(user_id=emma.id, kind="profile_fact", subject="Role", content="Product Manager at a retail startup",
+                      source="user", sensitivity="private", share_policy="ask"))
+        db.add(Memory(user_id=emma.id, kind="preference", subject="Answer style", content="Prefers short, structured answers",
+                      source="inferred", sensitivity="private", share_policy="allow"))
+        db.add(Goal(user_id=emma.id, title="Land a PM role", description="Interview prep for English PM positions"))
+        db.add(Journey(user_id=emma.id, kind="job_interview_preparation", state={"step": "not_started"}, history=[]))
 
-        # One live order
-        svc = services[3]
-        omar = consumers["omar@qora.ai"]
-        wallets[omar.id].balance_cents -= svc.price_cents
-        db.add(Transaction(wallet_id=wallets[omar.id].id, kind="purchase", amount_cents=-svc.price_cents,
-                           description=f"Order — {svc.title}"))
-        db.add(Order(
-            service_id=svc.id, buyer_id=omar.id, provider_id=svc.provider_id,
-            requirements="Detect surface defects on ceramic tiles — I can share 500 sample images.",
-            price_cents=svc.price_cents, status="in_progress",
-            created_at=now - timedelta(days=3),
-        ))
-        svc.orders_count += 1
+        # follow = add to personal toolkit [PRD]
+        db.add(FollowedService(user_id=emma.id, service_id=services["interview-coach"].id))
+        db.add(FollowedService(user_id=emma.id, service_id=services["trip-planner"].id))
+
+        # pre-granted career permission for the followed coach (demo of ALLOW_ONCE consumed later)
+        db.add(ContextGrant(user_id=emma.id, service_id=services["trip-planner"].id,
+                            context_type="travel", scope="*", mode="ALWAYS_ALLOW"))
+
+        for u in (emma, omar, sarah, marcus, lena, admin):
+            db.add(RewardAccount(user_id=u.id, balance_units=0))
 
         db.commit()
-        print("Seed complete: %d categories, %d services, demo logins ready." % (len(CATEGORIES), len(SERVICES)))
+        print("QORA platform seed complete: %d users, %d services, intents+capabilities linked." % (6, len(SERVICES)))
     finally:
         db.close()
 
