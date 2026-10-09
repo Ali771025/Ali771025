@@ -1,3 +1,5 @@
+# NOTE: copy this file to .github/workflows/qora-ci.yml to enable CI on GitHub.
+# (The Arena GitHub App cannot create workflow files — enable it manually.)
 name: QORA CI
 
 on:
