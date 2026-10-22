@@ -4,6 +4,12 @@ Electrical and electronics engineer with a background in telecommunication syste
 
 My repositories bring together learning projects and experiments in digital communications, signal processing, machine learning, and embedded systems.
 
+## Featured project: ArchiveSystem
+
+[**Explore ArchiveSystem →**](https://github.com/Ali771025/ArchiveSystem) — an on-premises document and case management application with a Persian RTL interface, .NET/React source, OCR workers, and architecture documentation. The public portfolio edition includes screenshots and a synthetic-data UI showcase.
+
+[![ArchiveSystem workspace — synthetic portfolio data](https://raw.githubusercontent.com/Ali771025/ArchiveSystem/main/docs/assets/workspace.webp)](https://github.com/Ali771025/ArchiveSystem)
+
 ## Areas of interest
 
 - **Digital communications:** ASK, PSK, QAM, error probability, and channel coding.
