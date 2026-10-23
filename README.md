@@ -1,36 +1,33 @@
 # Hi, I'm Yosof Omrani
 
-Electrical and electronics engineer with a background in telecommunication systems and an interest in artificial intelligence.
+**Business software, local AI workflows, document automation and device integration.**
 
-My repositories bring together learning projects and experiments in digital communications, signal processing, machine learning, and embedded systems.
+Electrical and electronics engineer with a telecommunication systems background. My source portfolio brings together .NET/React business applications, Python AI workflows, desktop tools and embedded communication projects.
 
-## Featured project: ArchiveSystem
+**[Explore the portfolio →](https://ali771025.github.io/software-portfolio/)** · **[Browse all 28 project editions](https://github.com/Ali771025/software-portfolio)** · **[Discuss a project](https://github.com/Ali771025/software-portfolio/issues/new?template=project-inquiry.yml)**
 
-[**Explore ArchiveSystem →**](https://github.com/Ali771025/ArchiveSystem) — an on-premises document and case management application with a Persian RTL interface, .NET/React source, OCR workers, and architecture documentation. The public portfolio edition includes screenshots and a synthetic-data UI showcase.
+## Find a relevant starting point
 
-[![ArchiveSystem workspace — synthetic portfolio data](https://raw.githubusercontent.com/Ali771025/ArchiveSystem/main/docs/assets/workspace.webp)](https://github.com/Ali771025/ArchiveSystem)
+| Your project needs | Examples to explore |
+| --- | --- |
+| Document and case management | [ArchiveSystem](https://github.com/Ali771025/ArchiveSystem) · [Contracts Next](https://github.com/Ali771025/contracts-next) |
+| Persian reporting and internal knowledge | [AI Query .NET](https://github.com/Ali771025/ai-query-dotnet) · [Persian NL2SQL](https://github.com/Ali771025/persian-nl2sql) · [RAG Knowledge Platform](https://github.com/Ali771025/rag-knowledge-platform) |
+| Recruitment and operational applications | [Recruitment Platform](https://github.com/Ali771025/ai-recruitment-platform) · [Portfolio Manager](https://github.com/Ali771025/smart-portfolio-manager) |
+| Vision and document processing | [X-ray Mosaic Studio](https://github.com/Ali771025/xray-mosaic-studio) · [Offline YOLO Toolkit](https://github.com/Ali771025/offline-yolo-toolkit) |
+| Desktop/device communication | [Qt Serial Joystick](https://github.com/Ali771025/qt-serial-joystick) · [STM32 Ethernet–Serial Bridge](https://github.com/Ali771025/stm32-ethernet-serial-bridge) |
 
-## Areas of interest
+[![ArchiveSystem — actual interface with synthetic portfolio data](https://raw.githubusercontent.com/Ali771025/ArchiveSystem/main/docs/assets/workspace.webp)](https://github.com/Ali771025/ArchiveSystem)
 
-- **Digital communications:** ASK, PSK, QAM, error probability, and channel coding.
-- **Signal processing:** waveform generation, FIR filtering, spectral analysis, and baseband/passband signals.
-- **Machine learning and computer vision:** Python, Keras, and notebook-based experiments.
-- **Embedded systems:** C and AVR microcontrollers.
+## همکاری در پروژه
 
-## Explore the repositories
+برای توسعه سامانه داخلی، رابط فارسی، گردش‌کار هوش مصنوعی، پردازش اسناد یا اتصال نرم‌افزار به تجهیزات، [نمونه‌های مرتبط را ببینید](https://ali771025.github.io/software-portfolio/) و [خلاصه‌ای از نیازتان مطرح کنید](https://github.com/Ali771025/software-portfolio/issues/new?template=project-inquiry.yml).
 
-| Area | Repository | What's inside |
-| --- | --- | --- |
-| Digital communications | [ModQAM](https://github.com/Ali771025/ModQAM) | MATLAB I/Q modulation, demodulation, and spectrum plotting examples. |
-| Channel coding | [trellis](https://github.com/Ali771025/trellis) | MATLAB exercises with convolutional encoding and Viterbi decoding. |
-| Signal processing | [SinusoidalSource](https://github.com/Ali771025/SinusoidalSource) | Sinusoidal signal generation and an FIR filtering experiment. |
-| Embedded systems | [Clock-New-Metot](https://github.com/Ali771025/Clock-New-Metot) | ATmega16 clock source code using an LCD and push-button time setting. |
-| Python practice | [dungeon_game](https://github.com/Ali771025/dungeon_game) | A terminal grid game with randomized player, monster, and exit positions. |
+مسئله، کاربران هدف، بستر اجرا و اتصال‌های موردنیاز نقطه شروع خوبی برای گفت‌وگو هستند. اطلاعات محرمانه در درخواست عمومی قرار ندهید؛ برای جزئیات خصوصی ابتدا مسیر ارتباط مناسب هماهنگ می‌شود.
 
-These repositories include educational examples and older experiments. Some use legacy APIs or require additional dependencies; the links describe their contents, rather than a claim of current compatibility. Existing source credits belong to their respective authors. Forked projects are listed separately on the repositories page.
+## Tools represented in the work
 
-## Tools represented here
+.NET / ASP.NET Core · React / TypeScript · Python · Flutter · Qt / C++ · Embedded C / STM32 · SQL · MATLAB
 
-MATLAB · Python · C · Keras · Jupyter / Google Colab · AVR
+The catalogue separates application source, interface prototypes, research examples and legacy excerpts. Each repository explains implementation scope and prerequisites. Source publication is not a claim of validated production, model accuracy or hardware acceptance; existing third-party credits remain applicable.
 
-[Browse all public repositories](https://github.com/Ali771025?tab=repositories)
+[فارسی: معرفی و فهرست کامل](https://github.com/Ali771025/software-portfolio/blob/main/docs/README.fa.md) · [All repositories](https://github.com/Ali771025?tab=repositories)
