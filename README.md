@@ -1,33 +1,48 @@
-# Hi, I'm Yosof Omrani
+# یوسف عمرانی | Yosof Omrani
 
-**Business software, local AI workflows, document automation and device integration.**
+**Business applications · Local AI · Document workflows · Desktop & device integration**
 
-Electrical and electronics engineer with a telecommunication systems background. My source portfolio brings together .NET/React business applications, Python AI workflows, desktop tools and embedded communication projects.
+برای توسعه سامانه داخلی، گردش اسناد، دستیار هوش مصنوعی یا اتصال نرم‌افزار به تجهیزات، خلاصه نیازتان را ایمیل کنید.
 
-**[Explore the portfolio →](https://ali771025.github.io/software-portfolio/)** · **[Browse all 28 project editions](https://github.com/Ali771025/software-portfolio)** · **[Discuss a project](https://github.com/Ali771025/software-portfolio/issues/new?template=project-inquiry.yml)**
+### درخواست پروژه و همکاری / Project inquiries
 
-## Find a relevant starting point
+**[aliomrani916@gmail.com](mailto:aliomrani916@gmail.com)**
 
-| Your project needs | Examples to explore |
+[خدمات و نمونه‌کارها](https://ali771025.github.io/software-portfolio/) · [Services & portfolio](https://ali771025.github.io/software-portfolio/en/) · [راهنمای درخواست پروژه](https://ali771025.github.io/software-portfolio/contact/)
+
+I work across .NET/React applications, Python data and AI workflows, Qt desktop interfaces and embedded communication. Email your goal, target users, platform and intended timeline to discuss a scoped implementation, integration or improvement.
+
+### Six selected source walkthroughs
+
+| What you need | Relevant example |
 | --- | --- |
-| Document and case management | [ArchiveSystem](https://github.com/Ali771025/ArchiveSystem) · [Contracts Next](https://github.com/Ali771025/contracts-next) |
-| Persian reporting and internal knowledge | [AI Query .NET](https://github.com/Ali771025/ai-query-dotnet) · [Persian NL2SQL](https://github.com/Ali771025/persian-nl2sql) · [RAG Knowledge Platform](https://github.com/Ali771025/rag-knowledge-platform) |
-| Recruitment and operational applications | [Recruitment Platform](https://github.com/Ali771025/ai-recruitment-platform) · [Portfolio Manager](https://github.com/Ali771025/smart-portfolio-manager) |
-| Vision and document processing | [X-ray Mosaic Studio](https://github.com/Ali771025/xray-mosaic-studio) · [Offline YOLO Toolkit](https://github.com/Ali771025/offline-yolo-toolkit) |
-| Desktop/device communication | [Qt Serial Joystick](https://github.com/Ali771025/qt-serial-joystick) · [STM32 Ethernet–Serial Bridge](https://github.com/Ali771025/stm32-ethernet-serial-bridge) |
+| Case records, files and Persian document workflows | [ArchiveSystem](https://ali771025.github.io/software-portfolio/en/work/ArchiveSystem/) |
+| A layered reporting API and query workspace | [AI Query .NET](https://ali771025.github.io/software-portfolio/en/work/ai-query-dotnet/) |
+| Document ingestion, retrieval and knowledge workflows | [RAG Knowledge Platform](https://ali771025.github.io/software-portfolio/en/work/rag-knowledge-platform/) |
+| Windows contract and financial workflows | [Contracts Next](https://ali771025.github.io/software-portfolio/en/work/contracts-next/) |
+| Qt/C++ interfaces and serial packet integration | [Qt Serial Joystick](https://ali771025.github.io/software-portfolio/en/work/qt-serial-joystick/) |
+| Scientific image processing and desktop review tools | [X-ray Mosaic Studio](https://ali771025.github.io/software-portfolio/en/work/xray-mosaic-studio/) |
 
-[![ArchiveSystem — actual interface with synthetic portfolio data](https://raw.githubusercontent.com/Ali771025/ArchiveSystem/main/docs/assets/workspace.webp)](https://github.com/Ali771025/ArchiveSystem)
+[![ArchiveSystem interface with synthetic showcase records](https://raw.githubusercontent.com/Ali771025/ArchiveSystem/main/docs/assets/workspace.webp)](https://ali771025.github.io/software-portfolio/en/work/ArchiveSystem/)
 
-## همکاری در پروژه
+### چگونه شروع کنیم؟
 
-برای توسعه سامانه داخلی، رابط فارسی، گردش‌کار هوش مصنوعی، پردازش اسناد یا اتصال نرم‌افزار به تجهیزات، [نمونه‌های مرتبط را ببینید](https://ali771025.github.io/software-portfolio/) و [خلاصه‌ای از نیازتان مطرح کنید](https://github.com/Ali771025/software-portfolio/issues/new?template=project-inquiry.yml).
+۱. مسئله، بستر اجرا و خروجی مورد انتظار را به **aliomrani916@gmail.com** بفرستید.  
+۲. درباره دامنه، اتصال‌ها و معیار پذیرش صحبت می‌کنیم.  
+۳. زمان‌بندی، هزینه و تحویل هر مرحله پیش از شروع با توافق مشخص می‌شود.
 
-مسئله، کاربران هدف، بستر اجرا و اتصال‌های موردنیاز نقطه شروع خوبی برای گفت‌وگو هستند. اطلاعات محرمانه در درخواست عمومی قرار ندهید؛ برای جزئیات خصوصی ابتدا مسیر ارتباط مناسب هماهنگ می‌شود.
+For existing applications, we can begin by scoping a source/architecture review and a focused improvement. Source handover, documentation and acceptance are defined for each engagement.
 
-## Tools represented in the work
+### Explore the work
 
-.NET / ASP.NET Core · React / TypeScript · Python · Flutter · Qt / C++ · Embedded C / STM32 · SQL · MATLAB
+- [Business software](https://ali771025.github.io/software-portfolio/en/services/business-software/)
+- [Local AI and Persian reporting](https://ali771025.github.io/software-portfolio/en/services/local-ai/)
+- [Document and image processing](https://ali771025.github.io/software-portfolio/en/services/document-image-processing/)
+- [Desktop and device integration](https://ali771025.github.io/software-portfolio/en/services/desktop-device-integration/)
+- [All 28 portfolio editions](https://ali771025.github.io/software-portfolio/en/#projects)
 
-The catalogue separates application source, interface prototypes, research examples and legacy excerpts. Each repository explains implementation scope and prerequisites. Source publication is not a claim of validated production, model accuracy or hardware acceptance; existing third-party credits remain applicable.
+.NET / ASP.NET Core · React / TypeScript · Python / FastAPI · Flutter · Qt / C++ · Embedded C / STM32 · SQL
 
-[فارسی: معرفی و فهرست کامل](https://github.com/Ali771025/software-portfolio/blob/main/docs/README.fa.md) · [All repositories](https://github.com/Ali771025?tab=repositories)
+Electrical and electronics engineering with a telecommunication systems background.
+
+The catalogue labels application source, interface prototypes, research and incomplete/legacy editions separately. Each example states its scope and prerequisites. No client testimonials, production acceptance, model accuracy or hardware validation are implied by publication. Existing third-party credits and rights remain applicable.
